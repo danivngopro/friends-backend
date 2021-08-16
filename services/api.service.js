@@ -1,6 +1,7 @@
 'use strict';
 
-const ApiGateway = require('moleculer-web');
+var jwt = require('jsonwebtoken');
+const ApiGateway = require("moleculer-web");
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
@@ -35,8 +36,8 @@ module.exports = {
         // Enable/disable parameter merging method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Disable-merging
         mergeParams: true,
 
-        // Enable authentication. Implement the logic into `authenticate` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authentication
-        authentication: false,
+		// Enable authentication. Implement the logic into `authenticate` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authentication
+		authentication: true,
 
         // Enable authorization. Implement the logic into `authorize` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authorization
         authorization: false,
@@ -45,20 +46,26 @@ module.exports = {
         // The gateway will dynamically build the full routes from service schema.
         autoAliases: true,
 
-        aliases: {},
+		aliases: {
+			"GET /users": "users.searchApprover",
+			"GET /users/kartoffel/:id": "users.getByKartoffelId",
+			"GET /users/domainuser/:domainuser": "users.getPersonByDomainUser",
+			"GET /users/approver": "users.isApprover",
+			"GET /users/approvers/:partialname": "users.searchApprover",
+		},
 
-        /** 
-				 * Before call hook. You can check the request.
-				 * @param {Context} ctx 
-				 * @param {Object} route 
-				 * @param {IncomingRequest} req 
-				 * @param {ServerResponse} res 
-				 * @param {Object} data
-				 * 
-				onBeforeCall(ctx, route, req, res) {
-					// Set request headers to context meta
-					ctx.meta.userAgent = req.headers["user-agent"];
-				}, */
+		/** 
+		 * Before call hook. You can check the request.
+		 * @param {Context} ctx 
+		 * @param {Object} route 
+		 * @param {IncomingRequest} req 
+		 * @param {ServerResponse} res 
+		 * @param {Object} data
+		 * 
+		onBeforeCall(ctx, route, req, res) {
+			// Set request headers to context meta
+			ctx.meta.userAgent = req.headers["user-agent"];
+		}, */
 
         /**
 				 * After call hook. You can modify the data.
@@ -72,99 +79,117 @@ module.exports = {
 					return doSomething(ctx, res, data);
 				}, */
 
-        // Calling options. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Calling-options
-        callingOptions: {},
+				// Calling options. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Calling-options
+				callingOptions: {},
 
-        bodyParsers: {
-          json: {
-            strict: false,
-            limit: '1MB',
-          },
-          urlencoded: {
-            extended: true,
-            limit: '1MB',
-          },
-        },
+				bodyParsers: {
+					json: {
+						strict: false,
+						limit: "1MB"
+					},
+					urlencoded: {
+						extended: true,
+						limit: "1MB"
+					}
+				},
 
-        // Mapping policy setting. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Mapping-policy
-        mappingPolicy: 'all', // Available values: "all", "restrict"
+				// Mapping policy setting. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Mapping-policy
+				mappingPolicy: "all", // Available values: "all", "restrict"
 
-        // Enable/disable logging
-        logging: true,
-      },
-    ],
+				// Enable/disable logging
+				logging: true,
 
-    // Do not log client side errors (does not log an error response when the error.code is 400<=X<500)
-    log4XXResponses: false,
-    // Logging the request parameters. Set to any log level to enable it. E.g. "info"
-    logRequestParams: null,
-    // Logging the response data. Set to any log level to enable it. E.g. "info"
-    logResponseData: null,
+				onError(req, res, err) {
+					res.setHeader("Content-Type", "application/json; charset=utf-8");
+					const statusCode = err?.response.status || 500; 
+					console.log(statusCode);
+					res.writeHead(statusCode);
+					res.end(err.message);
+				}
+			}
+		],
 
-    // Serve assets from "public" folder. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Serve-static-files
-    assets: {
-      folder: 'public',
+		// Do not log client side errors (does not log an error response when the error.code is 400<=X<500)
+		log4XXResponses: false,
+		// Logging the request parameters. Set to any log level to enable it. E.g. "info"
+		logRequestParams: null,
+		// Logging the response data. Set to any log level to enable it. E.g. "info"
+		logResponseData: null,
 
-      // Options to `server-static` module
-      options: {},
-    },
-  },
 
-  methods: {
-    /**
-     * Authenticate the request. It check the `Authorization` token value in the request header.
-     * Check the token value & resolve the user by the token.
-     * The resolved user will be available in `ctx.meta.user`
-     *
-     * PLEASE NOTE, IT'S JUST AN EXAMPLE IMPLEMENTATION. DO NOT USE IN PRODUCTION!
-     *
-     * @param {Context} ctx
-     * @param {Object} route
-     * @param {IncomingRequest} req
-     * @returns {Promise}
-     */
-    async authenticate(ctx, route, req) {
-      // Read the token from header
-      const auth = req.headers['authorization'];
+		// Serve assets from "public" folder. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Serve-static-files
+		assets: {
+			folder: "public",
 
-      if (auth && auth.startsWith('Bearer')) {
-        const token = auth.slice(7);
+			// Options to `server-static` module
+			options: {}
+		}
+	},
 
-        // Check the token. Tip: call a service which verify the token. E.g. `accounts.resolveToken`
-        if (token == '123456') {
-          // Returns the resolved user. It will be set to the `ctx.meta.user`
-          return { id: 1, name: 'John Doe' };
-        } else {
-          // Invalid token
-          throw new ApiGateway.Errors.UnAuthorizedError(
-            ApiGateway.Errors.ERR_INVALID_TOKEN
-          );
-        }
-      } else {
-        // No token. Throw an error or do nothing if anonymous access is allowed.
-        // throw new E.UnAuthorizedError(E.ERR_NO_TOKEN);
-        return null;
-      }
-    },
+	methods: {
 
-    /**
-     * Authorize the request. Check that the authenticated user has right to access the resource.
-     *
-     * PLEASE NOTE, IT'S JUST AN EXAMPLE IMPLEMENTATION. DO NOT USE IN PRODUCTION!
-     *
-     * @param {Context} ctx
-     * @param {Object} route
-     * @param {IncomingRequest} req
-     * @returns {Promise}
-     */
-    async authorize(ctx, route, req) {
-      // Get the authenticated user.
-      const user = ctx.meta.user;
+		/**
+		 * Extracting a JWT token from the `Authorization` request header.
+		 *
+		 * @param {IncomingRequest} req
+		 * @returns {string}
+		 */
+		extractBearerToken(req) {
+			if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
+			  return req.headers.authorization.split(' ')[1];
+			}
+			return null;
+		},
 
-      // It check the `auth` property in action schema.
-      if (req.$action.auth == 'required' && !user) {
-        throw new ApiGateway.Errors.UnAuthorizedError('NO_RIGHTS');
-      }
-    },
-  },
+		/**
+		 * Authenticate the request. It check the `Authorization` token value in the request header.
+		 * Check the token value & resolve the user by the token.
+		 * The resolved user will be available in `ctx.meta.user`
+		 *
+		 *
+		 * @param {Context} ctx
+		 * @param {Object} route
+		 * @param {IncomingRequest} req
+		 * @returns {Promise}
+		 */
+		async authenticate(ctx, route, req) {
+			console.log("authenticating");
+
+			const jwtToken = this.extractBearerToken(req);
+
+			if (jwtToken) {
+				try{
+					const secret = process.env.SECRET_KEY || 'supersecret-secret'; // TODO: figure a better way to load env variables
+					const decoded = jwt.verify(jwtToken, secret);
+					return decoded;
+				}
+				catch(err) {
+					console.log("error in jwt.verify: ", err);
+				}
+			}
+
+			throw new ApiGateway.Errors.UnAuthorizedError(ApiGateway.Errors.ERR_INVALID_TOKEN);
+		},
+
+		/**
+		 * Authorize the request. Check that the authenticated user has right to access the resource.
+		 *
+		 * PLEASE NOTE, IT'S JUST AN EXAMPLE IMPLEMENTATION. DO NOT USE IN PRODUCTION!
+		 *
+		 * @param {Context} ctx
+		 * @param {Object} route
+		 * @param {IncomingRequest} req
+		 * @returns {Promise}
+		 */
+		async authorize(ctx, route, req) {
+			// Get the authenticated user.
+			const user = ctx.meta.user;
+
+			// It check the `auth` property in action schema.
+			if (req.$action.auth == "required" && !user) {
+				throw new ApiGateway.Errors.UnAuthorizedError("NO_RIGHTS");
+			}
+		}
+
+	}
 };
