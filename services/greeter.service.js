@@ -1,93 +1,80 @@
-"use strict";
+'use strict';
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
 
 module.exports = {
-	name: "greeter",
+  name: 'greeter',
 
-	/**
-	 * Settings
-	 */
-	settings: {
+  /**
+   * Settings
+   */
+  settings: {},
 
-	},
+  /**
+   * Dependencies
+   */
+  dependencies: [],
 
-	/**
-	 * Dependencies
-	 */
-	dependencies: [],
+  /**
+   * Actions
+   */
+  actions: {
+    /**
+     * Say a 'Hello' action.
+     *
+     * @returns
+     */
+    hello: {
+      rest: {
+        method: 'GET',
+        path: '/hello',
+      },
+      async handler() {
+        return 'Hello Moleculer';
+      },
+    },
 
-	/**
-	 * Actions
-	 */
-	actions: {
+    /**
+     * Welcome, a username
+     *
+     * @param {String} name - User name
+     */
+    welcome: {
+      rest: '/welcome',
+      params: {
+        name: 'string',
+      },
+      /** @param {Context} ctx  */
+      async handler(ctx) {
+        return `Welcome, ${ctx.params.name}`;
+      },
+    },
+  },
 
-		/**
-		 * Say a 'Hello' action.
-		 *
-		 * @returns
-		 */
-		hello: {
-			rest: {
-				method: "GET",
-				path: "/hello"
-			},
-			async handler() {
-				return "Hello Moleculer";
-			}
-		},
+  /**
+   * Events
+   */
+  events: {},
 
-		/**
-		 * Welcome, a username
-		 *
-		 * @param {String} name - User name
-		 */
-		welcome: {
-			rest: "/welcome",
-			params: {
-				name: "string"
-			},
-			/** @param {Context} ctx  */
-			async handler(ctx) {
-				return `Welcome, ${ctx.params.name}`;
-			}
-		}
-	},
+  /**
+   * Methods
+   */
+  methods: {},
 
-	/**
-	 * Events
-	 */
-	events: {
+  /**
+   * Service created lifecycle event handler
+   */
+  created() {},
 
-	},
+  /**
+   * Service started lifecycle event handler
+   */
+  async started() {},
 
-	/**
-	 * Methods
-	 */
-	methods: {
-
-	},
-
-	/**
-	 * Service created lifecycle event handler
-	 */
-	created() {
-
-	},
-
-	/**
-	 * Service started lifecycle event handler
-	 */
-	async started() {
-
-	},
-
-	/**
-	 * Service stopped lifecycle event handler
-	 */
-	async stopped() {
-
-	}
+  /**
+   * Service stopped lifecycle event handler
+   */
+  async stopped() {},
 };
