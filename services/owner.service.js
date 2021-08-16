@@ -1,13 +1,13 @@
 'use strict';
 
 const DbMixin = require('../mixins/db.mixin');
-const CreateRequest = require('../models/create/CreateRequest');
+const OwnerRequest = require('../models/owner/OwnerRequest');
 
 /**
- * create service
+ * owner service
  */
 module.exports = {
-  name: 'create',
+  name: 'owner',
 
   /**
    * Service settings
@@ -17,7 +17,7 @@ module.exports = {
   /**
    * Mixins
    */
-  mixins: [DbMixin('createRequests')],
+  mixins: [DbMixin('ownerRequests')],
 
   /**
    * Service metadata
@@ -34,7 +34,7 @@ module.exports = {
    */
   actions: {
     /**
-     * Create request action.
+     * Owner request action.
      *
      * @returns
      */
@@ -43,7 +43,7 @@ module.exports = {
         method: 'POST',
         path: '/request',
       },
-      params: CreateRequest,
+      params: OwnerRequest,
       async handler(ctx) {
         const request = ctx.params;
         request.createdAt = new Date();
@@ -52,7 +52,7 @@ module.exports = {
           return await this.adapter.insert(ctx.params);
         } catch (err) {
           console.error(err);
-          throw new Error('Failed to create a request');
+          throw new Error('Failed to owner a request');
         }
       },
     },
@@ -191,9 +191,11 @@ module.exports = {
    * Fired after database connection establishing.
    */
   async afterConnected() {
-    await this.adapter.collection.createIndex(
-      { creator: 1, approver: 1 },
-      { unique: true }
-    );
+    if (!!this.adapter.collection) {
+      await this.adapter.collection.createIndex(
+        { creator: 1, approver: 1, groupId: 1 },
+        { unique: true }
+      );
+    }
   },
 };
