@@ -2,6 +2,13 @@
 const { ad } = require('../config');
 const { default: axios } = require('axios');
 const { generateGUID } = require('../utils');
+
+const Joi = require('joi');
+
+const schema = Joi.object({
+    partialName: Joi.string().required()
+});
+
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
@@ -35,6 +42,7 @@ module.exports = {
             },
 			async handler(ctx) {
                 try {
+                    schema.validate(ctx.params);
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.params.partialName}`);
 
                     if (!res.data) throw Error(`Couldn't find any user with the name: ${ctx.params.partialName}`);
@@ -132,7 +140,7 @@ module.exports = {
                 try {
                     let url;
                     let body = {
-                        _id: generateGUID(),
+                        id: generateGUID(),
                         type: ad.type,
                         data: {
                             groupId: ctx.params.groupId,
@@ -171,7 +179,7 @@ module.exports = {
                 console.log(ctx.params);
                 try {
                     let body = {
-                        _id: generateGUID(),
+                        id: generateGUID(),
                         type: ad.type,
                         data: {
                             groupId: ctx.params.groupName,
@@ -215,7 +223,7 @@ module.exports = {
             // send groupId in body, + generated id + data: { groupId }
             async handler(ctx) {
                 try {
-                    const res = await axios.delete(`${ad.AD_SERVICE_URL}/User/${ctx.params.partialName}`);
+                    const res = await axios.delete(`${ad.AD_SERVICE_URL}/Group`, { data: { data: { groupId: ctx.params.groupId }, id: generateGUID(), type: ad.type } });
 
                     if (res.status !== 200) throw Error(`Couldn't delete the group: ${ctx.params.groupId}`);
 
@@ -237,22 +245,25 @@ module.exports = {
             },
             async handler(ctx) {
                 try {
-                    let url = '/groups/user';
+                    let url;
                     let body = {
-                        _id: generateGUID(),
+                        id: generateGUID(),
                         type: ad.type,
-                        groupId: ctx.params.groupId
+                        data: {
+                            groupId: ctx.params.groupId,
+                            userId: undefined
+                        }
                     };
 
                     if (ctx.params.users.length > 1) {
-                        url = '/groups/users';
-                        body['users'] = ctx.params.users.join(';');
+                        url = '/Group/users';
+                        body.data['userId'] = ctx.params.users.join(';');
                     } else if (ctx.params.users.length === 0) {
-                        url = '/groups/user';
-                        body['user'] = ctx.params.users[0];
+                        url = '/Group/user';
+                        body.data['userId'] = ctx.params.users[0];
                     }
 
-                    const res = await axios.put(`${ad.AD_SERVICE_URL}/${url}`, body);
+                    const res = await axios.delete(`${ad.AD_SERVICE_URL}/${url}`, { data: body });
 
                     if (!res.data) throw Error(`Couldn't find user with the name: ${ctx.params.partialName}`);
                     return res.data;
@@ -274,7 +285,7 @@ module.exports = {
 				try {
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/${ctx.params.groupId}`);
 
-                    if (!res.data) throw Error(`Couldn't find group with the name: ${ctx.params.groupId}`);
+                    if (!res.data) throw Error(`Couldn't find any group with the groupId: ${ctx.params.groupId}`);
                     
                     return res.data;
                 } catch(err) {
@@ -296,17 +307,18 @@ module.exports = {
                 owner: "string",
                 name: "string"
             },
-            // split to request per field:
-            // /Group/:groupId/displayName
-            // /Group/:groupId/owner
-            // /Group/:groupId/name
             async handler(ctx) {
                 try {
                     let promises;
                     for (let [field, value] of ctx.params.entries()) {
                         if (field !== 'groupId') {
-                            promises.push(axios.put(`${ad.AD_SERVICE_URL}/Group/${groupId}/${field}`, {
-                                // TODO: what is the data???
+                            promises.push(axios.put(`${ad.AD_SERVICE_URL}/Group/${field}`, {
+                                id: generateGUID(),
+                                type: ad.type,
+                                data: {
+                                    groupId: ctx.params.groupId,
+                                    value,
+                                }
                             }));
                         }
                     }
