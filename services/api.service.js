@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-var jwt = require('jsonwebtoken');
+var jwt = require("jsonwebtoken");
 const ApiGateway = require("moleculer-web");
 
 /**
@@ -10,51 +10,52 @@ const ApiGateway = require("moleculer-web");
  */
 
 module.exports = {
-  name: 'api',
-  mixins: [ApiGateway],
+    name: "api",
+    mixins: [ApiGateway],
 
-  // More info about settings: https://moleculer.services/docs/0.14/moleculer-web.html
-  settings: {
-    // Exposed port
-    port: process.env.PORT || 3000,
+    // More info about settings: https://moleculer.services/docs/0.14/moleculer-web.html
+    settings: {
+        // Exposed port
+        port: process.env.PORT || 3000,
 
-    // Exposed IP
-    ip: '0.0.0.0',
+        // Exposed IP
+        ip: "0.0.0.0",
 
-    // Global Express middlewares. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Middlewares
-    use: [],
-
-    routes: [
-      {
-        path: '/api',
-
-        whitelist: ['**'],
-
-        // Route-level Express middlewares. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Middlewares
+        // Global Express middlewares. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Middlewares
         use: [],
 
-        // Enable/disable parameter merging method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Disable-merging
-        mergeParams: true,
+        routes: [
+            {
+                path: "/api",
 
-		// Enable authentication. Implement the logic into `authenticate` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authentication
-		authentication: true,
+                whitelist: ["**"],
 
-        // Enable authorization. Implement the logic into `authorize` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authorization
-        authorization: false,
+                // Route-level Express middlewares. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Middlewares
+                use: [],
 
-        // The auto-alias feature allows you to declare your route alias directly in your services.
-        // The gateway will dynamically build the full routes from service schema.
-        autoAliases: true,
+                // Enable/disable parameter merging method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Disable-merging
+                mergeParams: true,
 
-		aliases: {
-			"GET /users": "users.searchApprover",
-			"GET /users/kartoffel/:id": "users.getByKartoffelId",
-			"GET /users/domainuser/:domainuser": "users.getPersonByDomainUser",
-			"GET /users/approver": "users.isApprover",
-			"GET /users/approvers/:partialname": "users.searchApprover",
-		},
+                // Enable authentication. Implement the logic into `authenticate` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authentication
+                authentication: true,
 
-		/** 
+                // Enable authorization. Implement the logic into `authorize` method. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Authorization
+                authorization: false,
+
+                // The auto-alias feature allows you to declare your route alias directly in your services.
+                // The gateway will dynamically build the full routes from service schema.
+                autoAliases: true,
+
+                aliases: {
+                    "GET /users": "users.searchApprover",
+                    "GET /users/kartoffel/:id": "users.getByKartoffelId",
+                    "GET /users/domainuser/:domainuser":
+                        "users.getPersonByDomainUser",
+                    "GET /users/approver": "users.isApprover",
+                    "GET /users/approvers/:partialname": "users.searchApprover",
+                },
+
+                /** 
 		 * Before call hook. You can check the request.
 		 * @param {Context} ctx 
 		 * @param {Object} route 
@@ -67,129 +68,131 @@ module.exports = {
 			ctx.meta.userAgent = req.headers["user-agent"];
 		}, */
 
+                /**
+			 * After call hook. You can modify the data.
+			 * @param {Context} ctx 
+			 * @param {Object} route 
+			 * @param {IncomingRequest} req 
+			 * @param {ServerResponse} res 
+			 * @param {Object} data
+			onAfterCall(ctx, route, req, res, data) {
+				// Async function which return with Promise
+				return doSomething(ctx, res, data);
+			}, */
+
+                // Calling options. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Calling-options
+                callingOptions: {},
+
+                bodyParsers: {
+                    json: {
+                        strict: false,
+                        limit: "1MB",
+                    },
+                    urlencoded: {
+                        extended: true,
+                        limit: "1MB",
+                    },
+                },
+
+                // Mapping policy setting. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Mapping-policy
+                mappingPolicy: "all", // Available values: "all", "restrict"
+
+                // Enable/disable logging
+                logging: true,
+
+                onError(req, res, err) {
+                    res.setHeader(
+                        "Content-Type",
+                        "application/json; charset=utf-8"
+                    );
+                    const statusCode = err?.response?.status || 500;
+                    console.log(statusCode);
+                    res.writeHead(statusCode);
+                    res.end(err.message);
+                },
+            },
+        ],
+
+        // Do not log client side errors (does not log an error response when the error.code is 400<=X<500)
+        log4XXResponses: false,
+        // Logging the request parameters. Set to any log level to enable it. E.g. "info"
+        logRequestParams: null,
+        // Logging the response data. Set to any log level to enable it. E.g. "info"
+        logResponseData: null,
+
+        // Serve assets from "public" folder. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Serve-static-files
+        assets: {
+            folder: "public",
+
+            // Options to `server-static` module
+            options: {},
+        },
+    },
+
+    methods: {
         /**
-				 * After call hook. You can modify the data.
-				 * @param {Context} ctx 
-				 * @param {Object} route 
-				 * @param {IncomingRequest} req 
-				 * @param {ServerResponse} res 
-				 * @param {Object} data
-				onAfterCall(ctx, route, req, res, data) {
-					// Async function which return with Promise
-					return doSomething(ctx, res, data);
-				}, */
+         * Extracting a JWT token from the `Authorization` request header.
+         *
+         * @param {IncomingRequest} req
+         * @returns {string}
+         */
+        extractBearerToken(req) {
+            if (req.headers.authorization?.split(" ")[0] === "Bearer") {
+                return req.headers.authorization.split(" ")[1];
+            }
+            return null;
+        },
 
-				// Calling options. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Calling-options
-				callingOptions: {},
+        /**
+         * Authenticate the request. It check the `Authorization` token value in the request header.
+         * Check the token value & resolve the user by the token.
+         * The resolved user will be available in `ctx.meta.user`
+         *
+         *
+         * @param {Context} ctx
+         * @param {Object} route
+         * @param {IncomingRequest} req
+         * @returns {Promise}
+         */
+        async authenticate(ctx, route, req) {
+            console.log("authenticating");
 
-				bodyParsers: {
-					json: {
-						strict: false,
-						limit: "1MB"
-					},
-					urlencoded: {
-						extended: true,
-						limit: "1MB"
-					}
-				},
+            const jwtToken = this.extractBearerToken(req);
 
-				// Mapping policy setting. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Mapping-policy
-				mappingPolicy: "all", // Available values: "all", "restrict"
+            if (jwtToken) {
+                try {
+                    const secret =
+                        process.env.SECRET_KEY || "supersecret-secret"; // TODO: figure a better way to load env variables
+                    const decoded = jwt.verify(jwtToken, secret);
+                    return decoded;
+                } catch (err) {
+                    console.log("error in jwt.verify: ", err);
+                }
+            }
 
-				// Enable/disable logging
-				logging: true,
+            throw new ApiGateway.Errors.UnAuthorizedError(
+                ApiGateway.Errors.ERR_INVALID_TOKEN
+            );
+        },
 
-				onError(req, res, err) {
-					res.setHeader("Content-Type", "application/json; charset=utf-8");
-					const statusCode = err?.response.status || 500; 
-					console.log(statusCode);
-					res.writeHead(statusCode);
-					res.end(err.message);
-				}
-			}
-		],
+        /**
+         * Authorize the request. Check that the authenticated user has right to access the resource.
+         *
+         * PLEASE NOTE, IT'S JUST AN EXAMPLE IMPLEMENTATION. DO NOT USE IN PRODUCTION!
+         *
+         * @param {Context} ctx
+         * @param {Object} route
+         * @param {IncomingRequest} req
+         * @returns {Promise}
+         */
+        async authorize(ctx, route, req) {
+            // Get the authenticated user.
+            const user = ctx.meta.user;
 
-		// Do not log client side errors (does not log an error response when the error.code is 400<=X<500)
-		log4XXResponses: false,
-		// Logging the request parameters. Set to any log level to enable it. E.g. "info"
-		logRequestParams: null,
-		// Logging the response data. Set to any log level to enable it. E.g. "info"
-		logResponseData: null,
-
-
-		// Serve assets from "public" folder. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Serve-static-files
-		assets: {
-			folder: "public",
-
-			// Options to `server-static` module
-			options: {}
-		}
-	},
-
-	methods: {
-
-		/**
-		 * Extracting a JWT token from the `Authorization` request header.
-		 *
-		 * @param {IncomingRequest} req
-		 * @returns {string}
-		 */
-		extractBearerToken(req) {
-			if (req.headers.authorization?.split(' ')[0] === 'Bearer') {
-			  return req.headers.authorization.split(' ')[1];
-			}
-			return null;
-		},
-
-		/**
-		 * Authenticate the request. It check the `Authorization` token value in the request header.
-		 * Check the token value & resolve the user by the token.
-		 * The resolved user will be available in `ctx.meta.user`
-		 *
-		 *
-		 * @param {Context} ctx
-		 * @param {Object} route
-		 * @param {IncomingRequest} req
-		 * @returns {Promise}
-		 */
-		async authenticate(ctx, route, req) {
-			console.log("authenticating");
-
-			const jwtToken = this.extractBearerToken(req);
-
-			if (jwtToken) {
-				try{
-					const secret = process.env.SECRET_KEY || 'supersecret-secret'; // TODO: figure a better way to load env variables
-					const decoded = jwt.verify(jwtToken, secret);
-					return decoded;
-				}
-				catch(err) {
-					console.log("error in jwt.verify: ", err);
-				}
-			}
-
-			throw new ApiGateway.Errors.UnAuthorizedError(ApiGateway.Errors.ERR_INVALID_TOKEN);
-		},
-
-		/**
-		 * Authorize the request. Check that the authenticated user has right to access the resource.
-		 *
-		 * PLEASE NOTE, IT'S JUST AN EXAMPLE IMPLEMENTATION. DO NOT USE IN PRODUCTION!
-		 *
-		 * @param {Context} ctx
-		 * @param {Object} route
-		 * @param {IncomingRequest} req
-		 * @returns {Promise}
-		 */
-		async authorize(ctx, route, req) {
-			// Get the authenticated user.
-			const user = ctx.meta.user;
-
-			// It check the `auth` property in action schema.
-			if (req.$action.auth == "required" && !user) {
-				throw new ApiGateway.Errors.UnAuthorizedError("NO_RIGHTS");
-			}
-		}
-
-	}
+            // It check the `auth` property in action schema.
+            if (req.$action.auth == "required" && !user) {
+                throw new ApiGateway.Errors.UnAuthorizedError("NO_RIGHTS");
+            }
+        },
+    },
 };

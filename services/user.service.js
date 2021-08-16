@@ -14,7 +14,7 @@ module.exports = {
 	 */
 	settings: {
 		kartoffel: {
-			proxyUrl: "http://localhost:8009/kartoffel", // TODO: load the spike-proxy route from env
+			proxyUrl: "http://localhost:8010/kartoffel", // TODO: load the spike-proxy route from env
 			searchBase: "/api/persons/search?domainusers.datasource=nonExternals",
 			domainUserBase: "/api/persons/domainuser",
 			personBase: "/api/persons/",
@@ -84,8 +84,9 @@ module.exports = {
 			async handler(ctx) {
 				const url = this.buildSearchApproverUrl(ctx.params.partialname);
 				console.log(url);
-				const res = await this.kartoffelSearchHandler(url, {});
-				return res?.data | [];
+				const users = await this.kartoffelSearchHandler(url, {params: {fullName: ctx.params.partialname}});
+				console.log(users);
+				return users || [];
 			},
         },
 
