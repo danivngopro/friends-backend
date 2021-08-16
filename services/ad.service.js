@@ -2,13 +2,7 @@
 const { ad } = require('../config');
 const { default: axios } = require('axios');
 const { generateGUID } = require('../utils');
-
-const Joi = require('joi');
-
-const schema = Joi.object({
-    partialName: Joi.string().required()
-});
-
+const { schemas } = require('../validation/schemas');
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
@@ -42,15 +36,15 @@ module.exports = {
             },
 			async handler(ctx) {
                 try {
-                    schema.validate(ctx.params);
+                    schemas.partialName.validate(ctx.params);
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.params.partialName}`);
 
                     if (!res.data) throw Error(`Couldn't find any user with the name: ${ctx.params.partialName}`);
 
                     return res.data;
                 } catch(err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
 		},
@@ -65,14 +59,15 @@ module.exports = {
             },
             async handler(ctx) {
                 try {
+                    schemas.groupId.validate(ctx.params);
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/${ctx.params.groupId}`);
 
                     if (!res.data) throw Error(`Couldn't find group with the groupId: ${ctx.params.groupId}`);
                     
                     return res.data;
                 } catch(err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         },
@@ -80,21 +75,23 @@ module.exports = {
         groupsSearchDistribution: {
             rest: {
                 method: "GET",
-                path: "/groups",
+                path: "/groups/distribution",
             },
             params: {
                 partialName: "string"                
             },
             async handler(ctx) {
                 try {
+                    schemas.partialName.validate(ctx.params);
+
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/Distribution/${ctx.params.partialName}`);
 
                     if (!res.data) throw Error(`Couldn't find any distribution group with the name: ${ctx.params.partialName}`);
                     
                     return res.data;
                 } catch(err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         },
@@ -103,21 +100,22 @@ module.exports = {
         groupsSearchSecure: {
             rest: {
                 method: "GET",
-                path: "/groups",
+                path: "/groups/security",
             },
             params: {
                 partialName: "string"                
             },
             async handler(ctx) {
                 try {
+                    schemas.partialName.validate(ctx.params);
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/Security/${ctx.params.partialName}`);
 
                     if (!res.data) throw Error(`Couldn't find any secured group with the name: ${ctx.params.partialName}`);
                     
                     return res.data;
                 } catch(err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         },
@@ -138,6 +136,7 @@ module.exports = {
             // Type is empty string for now
             async handler(ctx) {
                 try {
+                    await schemas.usersActionOnGroup.validateAsync(ctx.params);
                     let url;
                     let body = {
                         id: generateGUID(),
@@ -161,8 +160,8 @@ module.exports = {
                     if (res.status !== 200) throw Error(`Couldn't add users: ${ctx.params.users}`);
                     return { success: true, users: ctx.params.users };
                 } catch (err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         },
@@ -173,10 +172,9 @@ module.exports = {
             },
             body: {
                 groupName: "string",
-                // TODO: implement,
+                // TODO GroupMetaData
             },
             async handler(ctx) {
-                console.log(ctx.params);
                 try {
                     let body = {
                         id: generateGUID(),
@@ -189,8 +187,8 @@ module.exports = {
 
                     return { success: true };
                 } catch (err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         },
@@ -207,8 +205,8 @@ module.exports = {
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.params.userId}/groups`);
                     return res.data;
                 } catch (err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         },
@@ -229,8 +227,8 @@ module.exports = {
 
                     return { success: true };
                 } catch (err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false }; 
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false }; 
                 }
 			}
         },
@@ -245,6 +243,8 @@ module.exports = {
             },
             async handler(ctx) {
                 try {
+                    await schemas.usersActionOnGroup.validateAsync(ctx.params);
+
                     let url;
                     let body = {
                         id: generateGUID(),
@@ -268,8 +268,8 @@ module.exports = {
                     if (!res.data) throw Error(`Couldn't find user with the name: ${ctx.params.partialName}`);
                     return res.data;
                 } catch (err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         },
@@ -289,28 +289,28 @@ module.exports = {
                     
                     return res.data;
                 } catch(err) {
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         },
         updateGroup: {
             rest: {
                 method: "PUT",
-                path: "/group/:groupId"
-            },
-            params: {
-                groupId: "string",
+                path: "/group"
             },
             body: {
+                groupId: "string",
                 displayName: "string",
                 owner: "string",
                 name: "string"
             },
             async handler(ctx) {
                 try {
-                    let promises;
-                    for (let [field, value] of ctx.params.entries()) {
+                    await schemas.groupId.validateAsync(ctx.params);
+                    
+                    const promises = [];
+                    for (const [field, value] of Object.entries(ctx.params)) {
                         if (field !== 'groupId') {
                             promises.push(axios.put(`${ad.AD_SERVICE_URL}/Group/${field}`, {
                                 id: generateGUID(),
@@ -322,14 +322,14 @@ module.exports = {
                             }));
                         }
                     }
-    
+
                     await Promise.all(promises);
                     return { message: 'successfully updated all parameters' , success: true };
                 } catch (err) {
                     console.error(`Error in updateGroup`, err);
 
-                    ctx.meta.$statusCode = err.status || 500;
-                    return { message: (err.response && err.response.message) || err.message, success: false };
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
                 }
 			}
         }
