@@ -30,6 +30,18 @@ services:
       - nats
     networks:
       - internal
+  ad:
+    build:
+      context: .
+    image: friends-backend
+    env_file: docker-compse.env
+    environment:
+      AD_SERVICE_DNS: EXAMPLE
+      SERVICES: ad
+    depends_on: 
+      -  nats
+    networks: 
+      -  internal
 
   products:
     build:
