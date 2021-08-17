@@ -14,6 +14,14 @@ const schemas = {
     userId: Joi.object({
         userId: Joi.string().required()
     }),
+    createGroup: Joi.object({
+        groupName: Joi.string().required(), 
+        hierarchy: Joi.string().required(), 
+        classification: Joi.string().valid('blue','limitedPurple','administrative').required(), 
+        owner: Joi.string().required(), 
+        members: Joi.array().items(Joi.string()).required(),
+        type: Joi.string().required(), 
+    }),
 }
 
 module.exports = {

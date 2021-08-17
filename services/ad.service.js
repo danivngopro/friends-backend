@@ -71,7 +71,7 @@ module.exports = {
                 }
 			}
         },
-        // /Group/Distribution/:partialName
+
         groupsSearchDistribution: {
             rest: {
                 method: "GET",
@@ -96,7 +96,6 @@ module.exports = {
 			}
         },
 
-        // /Group/Security/:partialName
         groupsSearchSecure: {
             rest: {
                 method: "GET",
@@ -119,7 +118,7 @@ module.exports = {
                 }
 			}
         },
-        // /groups/user + body
+
         groupsAdd: {
             rest: {
                 method: "PUT",
@@ -129,11 +128,7 @@ module.exports = {
                 groupId: "string",
                 users: ["string"]
             },
-            // create long string with ; between every user, if only one user, then don't add ;
-            // For users: the route is:
-            // For user, the route is:
-            // Generate ID for document
-            // Type is empty string for now
+
             async handler(ctx) {
                 try {
                     await schemas.usersActionOnGroup.validateAsync(ctx.params);
@@ -172,20 +167,32 @@ module.exports = {
             },
             body: {
                 groupName: "string",
-                // TODO GroupMetaData
+                hierarchy: "string",
+                displayName: "string",
+                classification: "string", // what are the allowed types?
+                owner: "string",
+                members: ["string"],
+                type: "string"
             },
             async handler(ctx) {
                 try {
+                    await schemas.createGroup.validateAsync(ctx.params);
+                    const { groupName, hierarchy, classification, owner, members } = ctx.params;
+
                     let body = {
                         id: generateGUID(),
                         type: ad.type,
                         data: {
-                            groupId: ctx.params.groupName,
-                            userId: undefined
+                            groupName, 
+                            hierarchy,
+                            classification,
+                            owner, 
+                            members
                         }
                     };
 
-                    return { success: true };
+                    const res = await axios.post(`${ad.AD_SERVICE_URL}/Group`, body);
+                    return res.data;
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
                     return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
@@ -218,7 +225,7 @@ module.exports = {
             params: {
                 groupId: "string"
             },
-            // send groupId in body, + generated id + data: { groupId }
+
             async handler(ctx) {
                 try {
                     const res = await axios.delete(`${ad.AD_SERVICE_URL}/Group`, { data: { data: { groupId: ctx.params.groupId }, id: generateGUID(), type: ad.type } });
@@ -239,7 +246,7 @@ module.exports = {
             },
             body: {
                 groupId: "string",
-                users: ["string"] // same logic as group add
+                users: ["string"],
             },
             async handler(ctx) {
                 try {
