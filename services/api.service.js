@@ -105,10 +105,10 @@ module.exports = {
                         "Content-Type",
                         "application/json; charset=utf-8"
                     );
-                    const statusCode = err?.response?.status || 500;
+                    const statusCode = err?.response?.status || err?.code || 500;
                     console.log(statusCode);
                     res.writeHead(statusCode);
-                    res.end(err.message);
+                    res.end(JSON.stringify({ message: err.message, success: false }));
                 },
             },
         ],
