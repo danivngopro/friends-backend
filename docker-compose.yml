@@ -85,6 +85,35 @@ services:
       - internal
       - default
 
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
+  outgoing-proxy-service:
+    image: spike-porxy-service
+    environment:
+      MODE: outgoing
+      PORT: 8000
+      SPIKE_REDIS_HOST: redis://redis
+      SPIKE_CLIENT_ID: aXzoxtIFbLVjebyr0~ppCQFxfsv3ZLNkHBrkyfhz
+      SPIKE_CLIENT_SECRET: XUneSMVVJhsGfmVPjjGzZgySdH4hmrNKbXGn5Iupjc68R361v_MuRy_XzBOeCnm3dSNWNU_JBsbWUus7UyVXmvj4cO0GW7am11Ex
+      SPIKE_URL: https://ospike.northeurope.cloudapp.azure.com/oauAth2/token
+      TOKEN_GRANT_TYPE: client_credentials
+      USE_REDIS: 'true'
+      OUTGOING_SERVICES: '[{"route":"/kartoffel/*","pathRewrite":{"^/kartoffel":""},"target":"http://kartoffel-master.eastus.cloudapp.azure.com:3001","audience":"kartoffel"}]'
+    ports:
+      - 8010:8000
+
+  authentication-service:
+    image: authentication-service
+    build: .
+    ports:
+      - '8004:3000'
+    env_file:
+      - .env
+    
+      
 networks:
   internal:
 
