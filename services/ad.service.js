@@ -3,6 +3,8 @@ const { ad } = require('../config');
 const { default: axios } = require('axios');
 const { generateGUID } = require('../utils');
 const { schemas } = require('../validation/schemas');
+const GroupMetadata = require('../models/create/GroupMetadata');
+
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
@@ -44,7 +46,7 @@ module.exports = {
                     return res.data;
                 } catch(err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
 		},
@@ -67,7 +69,7 @@ module.exports = {
                     return res.data;
                 } catch(err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         },
@@ -91,7 +93,7 @@ module.exports = {
                     return res.data;
                 } catch(err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         },
@@ -114,7 +116,7 @@ module.exports = {
                     return res.data;
                 } catch(err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         },
@@ -156,7 +158,7 @@ module.exports = {
                     return { success: true, users: ctx.params.users };
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         },
@@ -165,15 +167,7 @@ module.exports = {
                 method: "POST",
                 path: "/group"
             },
-            body: {
-                groupName: "string",
-                hierarchy: "string",
-                displayName: "string",
-                classification: "string", // what are the allowed types?
-                owner: "string",
-                members: ["string"],
-                type: "string"
-            },
+            body: GroupMetadata,
             async handler(ctx) {
                 try {
                     await schemas.createGroup.validateAsync(ctx.params);
@@ -195,7 +189,7 @@ module.exports = {
                     return res.data;
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         },
@@ -213,7 +207,7 @@ module.exports = {
                     return res.data;
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         },
@@ -235,7 +229,7 @@ module.exports = {
                     return { success: true };
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false }; 
+                    return { name: err.name, message: err?.response?.message || err.message, success: false }; 
                 }
 			}
         },
@@ -276,7 +270,7 @@ module.exports = {
                     return res.data;
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         },
@@ -297,7 +291,7 @@ module.exports = {
                     return res.data;
                 } catch(err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         },
@@ -336,7 +330,7 @@ module.exports = {
                     console.error(`Error in updateGroup`, err);
 
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: (err.response && err.response.message) || err.message, success: false };
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
 			}
         }
