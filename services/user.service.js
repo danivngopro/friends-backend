@@ -126,10 +126,14 @@ module.exports = {
 
 		loadApprovedRanks() {
 			// TODO: Enter all approved ranks (maybe do that from local file configured in env)
-			this.settings.approvedRanks = [
-				"mega",
-				"rookie"
-			];
+			if (!process.env.PRODUCTION) {
+				this.settings.approvedRanks = [
+					"mega",
+					"rookie"
+				];
+			}
+			const approvedRanks = [ "ראל", "רסן", "סאל", "אלם", "תאל", "אלף" ];
+			this.settings.approvedRanks = this.settings.approvedRanks.concat(approvedRanks);
 		},
 
 		// NOTICE: Currently only for get requests
