@@ -24,6 +24,4 @@ const schemas = {
     }),
 }
 
-module.exports = {
-    schemas
- }
+module.exports = schemas;

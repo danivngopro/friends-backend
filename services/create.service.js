@@ -2,6 +2,7 @@
 
 const DbMixin = require('../mixins/db.mixin');
 const CreateRequest = require('../models/create/CreateRequest');
+const { validations } = require('../validation');
 
 /**
  * create service
@@ -45,6 +46,8 @@ module.exports = {
       },
       params: CreateRequest,
       async handler(ctx) {
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user, ctx.params.id);
+
         const request = ctx.params;
         request.createdAt = new Date();
         request.status = 'Pending';
@@ -119,6 +122,8 @@ module.exports = {
       },
       params: { id: { type: 'string' } },
       async handler(ctx) {
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user, ctx.params.id);
+
         try {
           const res = await this.adapter.find({
             creator: ctx.params.id,

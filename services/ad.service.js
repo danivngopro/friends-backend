@@ -2,7 +2,7 @@
 const { ad } = require('../config');
 const { default: axios } = require('axios');
 const { generateGUID } = require('../utils');
-const { schemas } = require('../validation/schemas');
+const { schemas } = require('../validation');
 const GroupMetadata = require('../models/create/GroupMetadata');
 
 /**
@@ -28,11 +28,6 @@ module.exports = {
 	 */
 	actions: {
 		users: {
-            // /User/:partialName
-			rest: {
-				method: "GET",
-				path: "/users"
-			},
             params: {
                 partialName: "string"
             },
@@ -122,10 +117,6 @@ module.exports = {
         },
 
         groupsAdd: {
-            rest: {
-                method: "PUT",
-                path: "/groups/users"
-            },
             body: {
                 groupId: "string",
                 users: ["string"]
@@ -163,10 +154,6 @@ module.exports = {
 			}
         },
         groupsCreate: {
-            rest: {
-                method: "POST",
-                path: "/group"
-            },
             body: GroupMetadata,
             async handler(ctx) {
                 try {
@@ -184,6 +171,8 @@ module.exports = {
                             members
                         }
                     };
+
+                    // TODO: Check first that there isn't any group with the groupName
 
                     const res = await axios.post(`${ad.AD_SERVICE_URL}/Group`, body);
                     return res.data;
