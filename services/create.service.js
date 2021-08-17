@@ -191,9 +191,11 @@ module.exports = {
    * Fired after database connection establishing.
    */
   async afterConnected() {
-    await this.adapter.collection.createIndex(
-      { creator: 1, approver: 1 },
-      { unique: true }
-    );
+    if (!!this.adapter.collection) {
+      await this.adapter.collection.createIndex(
+        { creator: 1, approver: 1 },
+        { unique: true }
+      );
+    }
   },
 };
