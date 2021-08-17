@@ -1,6 +1,5 @@
 "use strict";
 const axios = require('axios');
-const { MemoryAdapter } = require('moleculer-db');
 const logoTag = require('../assets/friendsLogo');
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
