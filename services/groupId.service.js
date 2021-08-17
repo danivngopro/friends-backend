@@ -2,10 +2,11 @@
 
 const DbMixin = require('../mixins/db.mixin');
 const GetRequest = require('../models/groupId/GetRequest');
-const { validations } = require('../validation');
 const { groupId } = require('../config');
+const { schemas } = require('../validation');
+
 /**
- * join service
+ * groupId service
  */
 module.exports = {
   name: 'groupId',
@@ -47,14 +48,15 @@ module.exports = {
       params: GetRequest,
       async handler(ctx) {
         try {
+            schemas.type.validate(ctx.params);
+            console.log("get group called");
             if (!ctx.params.type) throw Error("Type cannot be null");
 
-            const currentNum = await this.adapter.updateMany({ type: ctx.params.type }, {
-                $inc: { current: 1 }
-            });
+            const { _id } = await this.adapter.findOne({ type: ctx.params.type });
+            const { current } = await this.adapter.updateById(_id, { $inc: { current: 1 } });
 
             const prefix = groupId.prefixIds[ctx.params.type];
-            return `${prefix}${String(currentNum).padStart(groupId.idLength, '0')}`
+            return `${prefix}${String(current).padStart(groupId.idLength, '0')}`
         } catch (err) {
           console.error(err);
           throw new Error('Failed to get the groupId');
@@ -98,7 +100,7 @@ module.exports = {
   async afterConnected() {
     const { types } = groupId;
     types.forEach(async (type) => {
-        if (await this.adapter.find({ type })) {
+        if (!await this.adapter.find({ type })) {
             await this.adapter.insert({ type, current: 0 });
         }
     })

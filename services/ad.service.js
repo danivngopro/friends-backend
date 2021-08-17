@@ -154,14 +154,18 @@ module.exports = {
 			}
         },
         groupsCreate: {
+            rest: {
+                method: "POST",
+                path: "/group",
+            },
             body: GroupMetadata,
             async handler(ctx) {
                 try {
                     await schemas.createGroup.validateAsync(ctx.params);
-                    const { groupName, hierarchy, classification, owner, members } = ctx.params;
+                    const { groupName, hierarchy, classification, owner, members, type } = ctx.params;
 
                     let body = {
-                        id: generateGUID(),
+                        id: await generateGUID(this.broker, type),
                         type: ad.type,
                         data: {
                             groupName, 

@@ -22,6 +22,9 @@ const schemas = {
         members: Joi.array().items(Joi.string()).required(),
         type: Joi.string().required(), 
     }),
+    type: Joi.object({
+        type: Joi.string().valid('distribution', 'security').required()
+    })
 }
 
 module.exports = schemas;
