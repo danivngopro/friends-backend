@@ -1,7 +1,7 @@
 "use strict";
 const { ad } = require('../config');
 const { default: axios } = require('axios');
-const { generateGUID } = require('../utils');
+const { generateGUID, checkIfApproved } = require('../utils');
 const { schemas } = require('../validation');
 const GroupMetadata = require('../models/create/GroupMetadata');
 
@@ -125,6 +125,8 @@ module.exports = {
             async handler(ctx) {
                 try {
                     await schemas.usersActionOnGroup.validateAsync(ctx.params);
+                    await checkIfApproved(this.broker, ctx.params.users.length, ctx.params.groupId, 'UPDATE');
+
                     let url;
                     let body = {
                         id: generateGUID(),
@@ -162,6 +164,8 @@ module.exports = {
             async handler(ctx) {
                 try {
                     await schemas.createGroup.validateAsync(ctx.params);
+                    await checkIfApproved(this.broker, ctx.params.members.length);
+
                     const { groupName, hierarchy, classification, owner, members, type } = ctx.params;
 
                     let body = {

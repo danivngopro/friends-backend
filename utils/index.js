@@ -1,3 +1,5 @@
 const generateGUID = require('./generateGUID');
+const checkIfApproved = require('./checkIfApproved');
 
-module.exports = { generateGUID };
+
+module.exports = { generateGUID, checkIfApproved };

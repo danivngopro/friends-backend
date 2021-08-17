@@ -13,6 +13,10 @@ const config = {
         },
         idLength: 10
     },
+    approve: {
+        NOT_APPROVED_LIMIT: 100,
+        APPROVED_LIMIT: 1000,
+    }
 }
 
 
