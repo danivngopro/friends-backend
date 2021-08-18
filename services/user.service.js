@@ -1,6 +1,7 @@
 "use strict";
 
 const { default: axios } = require('axios');
+require('dotenv').config();
 
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
@@ -14,12 +15,12 @@ module.exports = {
 	 */
 	settings: {
 		kartoffel: {
-			proxyUrl: "http://localhost:8010/kartoffel", // TODO: load the spike-proxy route from env
-			searchBase: "/api/persons/search?domainusers.datasource=nonExternals",
-			domainUserBase: "/api/persons/domainuser",
-			personBase: "/api/persons/",
+			proxyUrl: process.env.PROXY_URL || "http://localhost:8010/kartoffel", // TODO: load the spike-proxy route from env
+			searchBase: process.env.SEARCH_BASE || "/api/persons/search?domainusers.datasource=nonExternals",
+			domainUserBase: process.env.DOMAINUSER_BASE || "/api/persons/domainuser",
+			personBase: process.env.PERSON_BASE || "/api/persons/",
 		},
-		approvedRanks: [],
+		approvedRanks: process.env.APPROVED_RANKS || [],
 	},
 
 	/**

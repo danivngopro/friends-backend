@@ -21,6 +21,7 @@ const schemas = {
         members: Joi.array().items(Joi.string()).required(),
         type: Joi.string().valid('distribution', 'security').required(),
         groupName: Joi.string(),
+        displayName: Joi.string(),
     }),
     type: Joi.object({
         type: Joi.string().valid('distribution', 'security').required()
