@@ -53,6 +53,7 @@ module.exports = {
                         "users.getPersonByDomainUser",
                     "GET /users/approver": "users.isApprover",
                     "GET /users/approvers/:partialname": "users.searchApprover",
+                    "GET /users/isSuper": "users.isSuper"
                 },
 
                 /** 
