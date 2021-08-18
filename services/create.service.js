@@ -2,7 +2,7 @@
 
 const DbMixin = require('../mixins/db.mixin');
 const CreateRequest = require('../models/create/CreateRequest');
-const { validations } = require('../validation');
+const { validations, schemas } = require('../validation');
 
 /**
  * create service
@@ -46,16 +46,17 @@ module.exports = {
       },
       params: CreateRequest,
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user, ctx.params.id);
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user, ctx.params.creator);
 
         const request = ctx.params;
         request.createdAt = new Date();
         request.status = 'Pending';
         try {
+          await schemas.createGroup.validateAsync(ctx.params.group);
           return await this.adapter.insert(ctx.params);
         } catch (err) {
-          console.error(err);
-          throw new Error('Failed to create a request');
+          ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+          return { name: err.name, message: err?.response?.message || err.message, success: false };
         }
       },
     },
@@ -73,11 +74,13 @@ module.exports = {
       params: { id: { type: 'string' } },
       async handler(ctx) {
         try {
-          return await this.adapter.updateById(ctx.params.id, {
+          const newGroup = await this.adapter.updateById(ctx.params.id, {
             $set: {
               status: 'Approved',
             },
           });
+          
+          return this.broker.call('ad.groupsCreate', newGroup?.group);
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');
