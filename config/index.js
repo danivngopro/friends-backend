@@ -4,7 +4,10 @@ const config = {
     ad: {
         AD_SERVICE_URL: process.env.AD_SERVICE_URL || 'http://localhost:3000',
         types: {
-            create: 'Create',
+            create: {
+                distribution: 'CreateDistributionGroup',
+                security: 'CreateSecurityGroup',
+            },
             remove: 'Remove',
             add: 'Add',
             delete: 'DeleteDistribution',

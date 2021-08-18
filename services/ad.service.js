@@ -183,7 +183,7 @@ module.exports = {
 
                     let body = {
                         id: groupId,
-                        type: ad.types.create,
+                        type: ad.types.create[type],
                         data: {
                             groupName: groupId,
                             hierarchy,
