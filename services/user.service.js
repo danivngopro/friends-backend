@@ -18,7 +18,7 @@ module.exports = {
 	 */
 	settings: {
 		kartoffel: {
-			proxyUrl: process.env.OUTGOING_PROXY_URL || "http://outgoing-proxy-service:8000/kartoffel",
+			proxyUrl: process.env.OUTGOING_PROXY_URL || "http://outgoing-proxy-service:8010/kartoffel",
 			searchBase: "/api/persons/search?domainusers.datasource=nonExternals",
 
 			domainUserBase: "/api/persons/domainuser",
