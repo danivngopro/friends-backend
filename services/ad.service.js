@@ -130,7 +130,7 @@ module.exports = {
                     let url;
                     let body = {
                         id: ctx.params.groupId,
-                        type: ad.type,
+                        type: ad.types.add,
                         data: {
                             groupId: ctx.params.groupId,
                             userId: undefined
@@ -160,38 +160,36 @@ module.exports = {
                 method: "POST",
                 path: "/group",
             },
-            body: {
-                hierarchy: { type: 'string' },
-                displayName: { type: 'string' },
-                classification: { type: 'string' },
-                owner: { type: 'string' },
-                members: {
-                  type: 'array',
-                  items: {
-                    type: 'string',
-                    enum: ['sAMAccountName'],
-                  },
-                },
-                type: { type: 'string' },
-            },
+            body: GroupMetadata,
             async handler(ctx) {
                 try {
                     await schemas.createGroup.validateAsync(ctx.params);
                     await checkIfApproved(this.broker, ctx.params.members.length);
 
-                    const { hierarchy, classification, owner, members, type } = ctx.params;
-                    const groupId = await generateGUID(this.broker, type);
+                    const { groupName, hierarchy, classification, owner, members, type } = ctx.params;
+                    let groupId;
+
+                    if (ad.validatedGroupTypes.includes(type)) {
+                        try {
+                            await this.broker.call('ad.groupById', { groupId: groupName });
+                            ctx.meta.$statusCode = 400;
+                            return { name: 'GroupNameExists', message: `The group name ${groupName} already exists`, success: false };
+                        } catch (err) {
+                            groupId = groupName;
+                        }
+                    } else {
+                        groupId = await generateGUID(this.broker, type);
+                    }
 
                     let body = {
                         id: groupId,
-                        type: ad.type,
+                        type: ad.types.create,
                         data: {
                             groupName: groupId,
                             hierarchy,
                             classification,
                             owner, 
-                            members,
-                            
+                            members: members.join(';'),      
                         }
                     };
 
@@ -238,7 +236,7 @@ module.exports = {
                                 groupId: ctx.params.groupId
                             },
                             id: ctx.params.groupId,
-                            type: ad.type,
+                            type: ad.types.delete,
                         }
                     });
 
@@ -267,7 +265,7 @@ module.exports = {
                     let url;
                     let body = {
                         id: ctx.params.groupId,
-                        type: ad.type,
+                        type: ad.types.remove,
                         data: {
                             groupId: ctx.params.groupId,
                             userId: undefined
@@ -333,7 +331,7 @@ module.exports = {
                         if (field !== 'groupId') {
                             promises.push(axios.put(`${ad.AD_SERVICE_URL}/Group/${field}`, {
                                 id: ctx.params.groupId,
-                                type: ad.type,
+                                type: ad.types[field],
                                 data: {
                                     groupId: ctx.params.groupId,
                                     value,

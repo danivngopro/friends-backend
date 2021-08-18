@@ -3,7 +3,16 @@ require('dotenv').config('./.env');
 const config = {
     ad: {
         AD_SERVICE_URL: process.env.AD_SERVICE_URL || 'http://localhost:3000',
-        type: ''
+        types: {
+            create: 'Create',
+            remove: 'Remove',
+            add: 'Add',
+            delete: 'DeleteDistribution',
+            displayName: 'changeDisplayName',
+            name: 'ChangeSecurityName',
+            owner: ''
+        },
+        validatedGroupTypes: ['security'],
     },
     groupId: {
         types: ['distribution', 'security'],

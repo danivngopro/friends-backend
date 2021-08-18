@@ -19,7 +19,8 @@ const schemas = {
         classification: Joi.string().valid('blue','limitedPurple','administrative').required(), 
         owner: Joi.string().required(), 
         members: Joi.array().items(Joi.string()).required(),
-        type: Joi.string().valid('distribution', 'security').required(), 
+        type: Joi.string().valid('distribution', 'security').required(),
+        groupName: Joi.string(),
     }),
     type: Joi.object({
         type: Joi.string().valid('distribution', 'security').required()
