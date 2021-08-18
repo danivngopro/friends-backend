@@ -73,11 +73,13 @@ module.exports = {
       params: { id: { type: 'string' } },
       async handler(ctx) {
         try {
-          return await this.adapter.updateById(ctx.params.id, {
+          const request = await this.adapter.updateById(ctx.params.id, {
             $set: {
               status: 'Approved',
             },
           });
+
+          return await this.broker.call('ad.groupsAdd', { groupId: request?.groupId, users: [request?.creator] });
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');

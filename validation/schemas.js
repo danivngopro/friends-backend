@@ -24,6 +24,10 @@ const schemas = {
     }),
     type: Joi.object({
         type: Joi.string().valid('distribution', 'security').required()
+    }),
+    updateOwner: Joi.object({
+        owner: Joi.string().required(),
+        groupId: Joi.string().required()
     })
 }
 

@@ -46,13 +46,18 @@ module.exports = {
       },
       params: CreateRequest,
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user, ctx.params.creator);
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.creator);
 
         const request = ctx.params;
         request.createdAt = new Date();
         request.status = 'Pending';
         try {
           await schemas.createGroup.validateAsync(ctx.params.group);
+
+          if (!ctx.params.group.members.includes(ctx.meta.user.id)) {
+            ctx.params.group.members.push(ctx.meta.user.id);
+          }
+
           return await this.adapter.insert(ctx.params);
         } catch (err) {
           ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
@@ -80,7 +85,7 @@ module.exports = {
             },
           });
           
-          return this.broker.call('ad.groupsCreate', newGroup?.group);
+          return await this.broker.call('ad.groupsCreate', newGroup?.group);
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');
@@ -125,7 +130,7 @@ module.exports = {
       },
       params: { id: { type: 'string' } },
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user, ctx.params.id);
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
 
         try {
           const res = await this.adapter.find({
