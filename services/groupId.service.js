@@ -41,10 +41,6 @@ module.exports = {
      * @returns
      */
     getGroupId: {
-      rest: {
-        method: 'GET',
-        path: '/request/:type',
-      },
       params: GetRequest,
       async handler(ctx) {
         try {
@@ -69,9 +65,6 @@ module.exports = {
    * Events
    */
   events: {
-    async 'some.thing'(ctx) {
-      this.logger.info('Something happened', ctx.params);
-    },
   },
 
   /**

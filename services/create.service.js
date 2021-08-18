@@ -167,9 +167,6 @@ module.exports = {
    * Events
    */
   events: {
-    async 'some.thing'(ctx) {
-      this.logger.info('Something happened', ctx.params);
-    },
   },
 
   /**

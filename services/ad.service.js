@@ -129,7 +129,7 @@ module.exports = {
 
                     let url;
                     let body = {
-                        id: generateGUID(),
+                        id: ctx.params.groupId,
                         type: ad.type,
                         data: {
                             groupId: ctx.params.groupId,
@@ -160,27 +160,40 @@ module.exports = {
                 method: "POST",
                 path: "/group",
             },
-            body: GroupMetadata,
+            body: {
+                hierarchy: { type: 'string' },
+                displayName: { type: 'string' },
+                classification: { type: 'string' },
+                owner: { type: 'string' },
+                members: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    enum: ['sAMAccountName'],
+                  },
+                },
+                type: { type: 'string' },
+            },
             async handler(ctx) {
                 try {
                     await schemas.createGroup.validateAsync(ctx.params);
                     await checkIfApproved(this.broker, ctx.params.members.length);
 
-                    const { groupName, hierarchy, classification, owner, members, type } = ctx.params;
+                    const { hierarchy, classification, owner, members, type } = ctx.params;
+                    const groupId = await generateGUID(this.broker, type);
 
                     let body = {
-                        id: await generateGUID(this.broker, type),
+                        id: groupId,
                         type: ad.type,
                         data: {
-                            groupName, 
+                            groupName: groupId,
                             hierarchy,
                             classification,
                             owner, 
-                            members
+                            members,
+                            
                         }
                     };
-
-                    // TODO: Check first that there isn't any group with the groupName
 
                     const res = await axios.post(`${ad.AD_SERVICE_URL}/Group`, body);
                     return res.data;
@@ -219,7 +232,15 @@ module.exports = {
 
             async handler(ctx) {
                 try {
-                    const res = await axios.delete(`${ad.AD_SERVICE_URL}/Group`, { data: { data: { groupId: ctx.params.groupId }, id: generateGUID(), type: ad.type } });
+                    const res = await axios.delete(`${ad.AD_SERVICE_URL}/Group`, {
+                        data: {
+                            data: {
+                                groupId: ctx.params.groupId
+                            },
+                            id: ctx.params.groupId,
+                            type: ad.type,
+                        }
+                    });
 
                     if (res.status !== 200) throw Error(`Couldn't delete the group: ${ctx.params.groupId}`);
 
@@ -245,7 +266,7 @@ module.exports = {
 
                     let url;
                     let body = {
-                        id: generateGUID(),
+                        id: ctx.params.groupId,
                         type: ad.type,
                         data: {
                             groupId: ctx.params.groupId,
@@ -311,7 +332,7 @@ module.exports = {
                     for (const [field, value] of Object.entries(ctx.params)) {
                         if (field !== 'groupId') {
                             promises.push(axios.put(`${ad.AD_SERVICE_URL}/Group/${field}`, {
-                                id: generateGUID(),
+                                id: ctx.params.groupId,
                                 type: ad.type,
                                 data: {
                                     groupId: ctx.params.groupId,

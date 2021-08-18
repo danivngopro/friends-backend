@@ -46,7 +46,7 @@ module.exports = {
       },
       params: OwnerRequest,
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user, ctx.params.id);
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
 
         const request = ctx.params;
         request.createdAt = new Date();
@@ -122,7 +122,7 @@ module.exports = {
       },
       params: { id: { type: 'string' } },
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user, ctx.params.id);
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
 
         try {
           const res = await this.adapter.find({
@@ -167,9 +167,6 @@ module.exports = {
    * Events
    */
   events: {
-    async 'some.thing'(ctx) {
-      this.logger.info('Something happened', ctx.params);
-    },
   },
 
   /**

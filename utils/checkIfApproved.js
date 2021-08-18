@@ -10,18 +10,19 @@ const { MoleculerClientError } = require("moleculer").Errors;
  * @param {*} event 
  */
 const checkIfApproved = async (broker, addedMembersCount, groupId, event = 'CREATE') => {
-    let currentCount = 0;
+    let groupCount = addedMembersCount;
 
     if (event === 'UPDATE') {
-        currentCount = 1000; // TODO: implement request to get group length
+        const currentGroup = await axios.get(`${ad.AD_SERVICE_URL}/Group/${groupId}`);
+        groupCount += currentGroup.members.length;
     }
 
     // TODO: how to know if a user is superuser?
     const isApprover = await broker.call('users.isApprover');
 
-    if (!isApprover && addedMembersCount > approve.NOT_APPROVED_LIMIT) {
+    if (!isApprover && groupCount > approve.NOT_APPROVED_LIMIT) {
         throw new MoleculerClientError(`You are not allowed to create group with a size greather then ${approve.NOT_APPROVED_LIMIT}`, 400, "BAD_REQUEST")
-    } else if (isApprover && addedMembersCount > approve.APPROVED_LIMIT) {
+    } else if (isApprover && groupCount > approve.APPROVED_LIMIT) {
         throw new MoleculerClientError(`You are not allowed to create group with a size greather then ${approve.APPROVED_LIMIT}`, 400, "BAD_REQUEST")
     }
 }
