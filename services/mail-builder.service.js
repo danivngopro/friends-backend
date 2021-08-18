@@ -222,7 +222,7 @@ module.exports = {
             </div>`
         },
 		async manageTransferHTML(requestData) {
-            // console.log(logoTag)
+            // this.logger.info(logoTag)
             return `<div style="justify-content:center; align-items:center; text-align: center; font-family: Arial, Helvetica, sans-serif; direction: rtl;">
             <span style="width:300px">${logoTag.logoTag}</span>
             <br />

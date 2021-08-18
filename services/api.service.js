@@ -106,7 +106,7 @@ module.exports = {
                         "application/json; charset=utf-8"
                     );
                     const statusCode = err?.response?.status || err?.code || 500;
-                    console.log(statusCode);
+                    this.logger.info(statusCode);
                     res.writeHead(statusCode);
                     res.end(JSON.stringify({ message: err.message, success: false }));
                 },
@@ -155,7 +155,7 @@ module.exports = {
          * @returns {Promise}
          */
         async authenticate(ctx, route, req) {
-            console.log("authenticating");
+            this.logger.info("authenticating");
 
             const jwtToken = this.extractBearerToken(req);
 
@@ -166,7 +166,7 @@ module.exports = {
                     const decoded = jwt.verify(jwtToken, secret);
                     return decoded;
                 } catch (err) {
-                    console.log("error in jwt.verify: ", err);
+                    this.logger.info("error in jwt.verify: ", err);
                 }
             }
 

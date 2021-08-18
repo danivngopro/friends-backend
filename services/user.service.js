@@ -86,9 +86,9 @@ module.exports = {
         searchApprover: {
 			async handler(ctx) {
 				const url = this.buildSearchApproverUrl(ctx.params.partialname);
-				console.log(url);
+				this.logger.info(url);
 				const users = await this.kartoffelSearchHandler(url, {params: {fullName: ctx.params.partialname}});
-				console.log(users);
+				this.logger.info(users);
 				return users || [];
 			},
         },
@@ -145,7 +145,7 @@ module.exports = {
 				const res = await axios.get(url, config);
 				return res.data;
 			} catch (err) {
-				console.log(err);
+				this.logger.info(err);
 				if (err.response && err.response.status) {
 				  const statusCode = err.response.status;
 				  if (statusCode === 404) {
