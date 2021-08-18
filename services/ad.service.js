@@ -159,10 +159,6 @@ module.exports = {
 			}
         },
         groupsCreate: {
-            rest: {
-                method: "POST",
-                path: "/group",
-            },
             body: GroupMetadata,
             async handler(ctx) {
                 try {

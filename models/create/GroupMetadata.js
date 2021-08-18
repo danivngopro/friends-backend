@@ -10,7 +10,6 @@ module.exports = {
       type: 'array',
       items: {
         type: 'string',
-        enum: ['sAMAccountName'],
       },
     },
     type: { type: 'string' },
