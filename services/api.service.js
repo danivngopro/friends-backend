@@ -47,7 +47,7 @@ module.exports = {
                 autoAliases: true,
 
                 aliases: {
-                    "GET /users": "users.searchApprover",
+                    "GET /": "users.searchApprover",
                     "GET /users/kartoffel/:id": "users.getByKartoffelId",
                     "GET /users/domainuser/:domainuser":
                         "users.getPersonByDomainUser",
@@ -105,10 +105,10 @@ module.exports = {
                         "Content-Type",
                         "application/json; charset=utf-8"
                     );
-                    const statusCode = err?.response?.status || 500;
-                    console.log(statusCode);
+                    const statusCode = err?.response?.status || err?.code || 500;
+                    this.logger.info(statusCode);
                     res.writeHead(statusCode);
-                    res.end(err.message);
+                    res.end(JSON.stringify({ message: err.message, success: false }));
                 },
             },
         ],
@@ -155,7 +155,7 @@ module.exports = {
          * @returns {Promise}
          */
         async authenticate(ctx, route, req) {
-            console.log("authenticating");
+            this.logger.info("authenticating");
 
             const jwtToken = this.extractBearerToken(req);
 
@@ -166,7 +166,7 @@ module.exports = {
                     const decoded = jwt.verify(jwtToken, secret);
                     return decoded;
                 } catch (err) {
-                    console.log("error in jwt.verify: ", err);
+                    this.logger.info("error in jwt.verify: ", err);
                 }
             }
 
