@@ -16,7 +16,7 @@ module.exports = {
 	 * Settings
 	 */
 	settings: {
-
+        mailUserFrom: process.env.MAIL_USER || null,
 	},
 
 	/**
@@ -28,35 +28,6 @@ module.exports = {
 	 * Actions
 	 */
 	actions: {
-        async generateJoinHTML(requestData){
-			this.logger.info("requestData:", requestData)
-            const html = this.joinHTML(requestData); 
-            return html;
-        },
-		async generateJoinConfirmHTML(requestData){
-			this.logger.info("requestData:", requestData)
-            const html = this.joinConfirmHTML(requestData); 
-            return html;
-
-        },
-		async generateCreateHTML(requestData){
-			this.logger.info("requestData:", requestData)
-            const html = this.createHTML(requestData); 
-            return html;
-
-        },
-		async generateConfirmCreateHTML(requestData){
-			this.logger.info("requestData:", requestData)
-            const html = this.createConfirmHTML(requestData); 
-            return html;
-
-        },
-		async generateManageTransferHTML(requestData){
-			this.logger.info("requestData:", requestData)
-            const html = this.manageTransferHTML(requestData); 
-            return html;
-
-        },
 
 	},
 
@@ -65,19 +36,18 @@ module.exports = {
 	 */
 	events: {
 		async "mail.join" (payload) {
-			// this.logger.info(payload);
             const mailObject = {
-                from: "selina.mayert92@ethereal.email",
+                from: this.settings.mailUserFrom,
                 to: ["selina.mayert92@ethereal.email"],
                 title: "test",
-                html: await this.actions.generateJoinHTML(payload)
+                html: await this.joinHTML(payload)
             };
 
 			const mailConfirmObject = {
-                from: "selina.mayert92@ethereal.email",
+                from: this.settings.mailUserFrom,
                 to: ["selina.mayert92@ethereal.email"],
                 title: "test",
-                html: await this.actions.generateJoinConfirmHTML(payload)
+                html: await this.joinConfirmHTML(payload)
             };
 
             const requestData = {...payload};
@@ -99,14 +69,14 @@ module.exports = {
 
 		async "mail.create" (payload) {
             const mailObject = {
-                from: "selina.mayert92@ethereal.email",
+                from: this.settings.mailUserFrom,
                 to: ["selina.mayert92@ethereal.email"],
                 title: "test",
 				html: await this.createHTML(payload)
             };
 
 			const mailConfirmObject = {
-                from: "selina.mayert92@ethereal.email",
+                from: this.settings.mailUserFrom,
                 to: ["selina.mayert92@ethereal.email"],
                 title: "test",
 				html: await this.createConfirmHTML(payload)
@@ -114,7 +84,6 @@ module.exports = {
 
             const requestData = {...payload};
             // TODO: make sure to populate ids with ctx.call...kartofel...
-
 
             // send mail
             axios.post(config.MAILER_SERVICE_URL, mailObject).then(res=>{
@@ -132,15 +101,14 @@ module.exports = {
 		
 		async "mail.owner" (payload) {
             const mailObject = {
-                from: "selina.mayert92@ethereal.email",
+                from: this.settings.mailUserFrom,
                 to: ["selina.mayert92@ethereal.email"],
                 title: "test",
-                html: await this.actions.generateManageTransferHTML(payload)
+                html: await this.ManagementTransferHTML(payload)
             };
 
             const requestData = {...payload};
             // TODO: make sure to populate ids with ctx.call...kartofel...
-
 
             // send mail
             axios.post(config.MAILER_SERVICE_URL, mailObject).then(res=>{
@@ -153,14 +121,14 @@ module.exports = {
 	},
 
     // mailer support//
-    
-    // mailer support//
 	/**
 	 * Methods
 	 */
 	methods: {
 
         async joinHTML(requestData) {
+            const creator = await this.broker.call("users.getByKartoffelId", {id: requestData.creator}) 
+            this.logger.info(creator)
             return `<div style="justify-content:center; align-items:center; text-align: center; font-family: Arial, Helvetica, sans-serif; direction: rtl;">
             <span style="width:300px">${logoTag.logoTag}</span>
             <br />
@@ -222,7 +190,6 @@ module.exports = {
             </div>`
         },
 		async manageTransferHTML(requestData) {
-            // console.log(logoTag)
             return `<div style="justify-content:center; align-items:center; text-align: center; font-family: Arial, Helvetica, sans-serif; direction: rtl;">
             <span style="width:300px">${logoTag.logoTag}</span>
             <br />

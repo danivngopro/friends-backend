@@ -49,7 +49,9 @@ module.exports = {
         request.createdAt = new Date();
         request.status = 'Pending';
         try {
-          return await this.adapter.insert(ctx.params);
+          const res = await this.adapter.insert(ctx.params);
+          ctx.emit("mail.create", request)
+          return res;
         } catch (err) {
           console.error(err);
           throw new Error('Failed to create a request');
@@ -144,6 +146,7 @@ module.exports = {
       },
       params: { id: { type: 'string' } },
       async handler(ctx) {
+        // ctx.emit("mail.create", request)
         try {
           const res = await this.adapter.find({
             approver: ctx.params.id,
