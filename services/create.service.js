@@ -53,12 +53,14 @@ module.exports = {
         request.status = 'Pending';
         try {
           await schemas.createGroup.validateAsync(ctx.params.group);
-
+          
           if (!ctx.params.group.members.includes(ctx.meta.user.id)) {
             ctx.params.group.members.push(ctx.meta.user.id);
           }
-
-          return await this.adapter.insert(ctx.params);
+          
+          const res = await this.adapter.insert(ctx.params);
+          ctx.emit("mail.create", request)
+          return res;
         } catch (err) {
           ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
           return { name: err.name, message: err?.response?.message || err.message, success: false };
@@ -157,6 +159,7 @@ module.exports = {
       },
       params: { id: { type: 'string' } },
       async handler(ctx) {
+        // ctx.emit("mail.create", request)
         try {
           const res = await this.adapter.find({
             approver: ctx.params.id,
