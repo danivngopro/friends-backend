@@ -61,8 +61,11 @@ module.exports = {
 
                     if (!res.data) throw Error(`Couldn't find group with the groupId: ${ctx.params.groupId}`);
                     
+                    this.logger.info('returning group:', ctx.params.groupId);
                     return res.data;
                 } catch(err) {
+                    this.logger.error('error occured in finding group by id:', ctx.params.groupId);
+
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
                     return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }
@@ -311,6 +314,31 @@ module.exports = {
                 }
 			}
         },
+        updateGroupOwner: {
+            body: {
+                groupId: "string",
+                owner: "string",
+            },
+            async handler(ctx) {
+                try {
+                    await schemas.updateOwner.validateAsync(ctx.params);
+
+                    return await axios.put(`${ad.AD_SERVICE_URL}/Group/owner`, {
+                        id: ctx.params.groupId,
+                        type: ad.types['owner'],
+                        data: {
+                            groupId: ctx.params.groupId,
+                            value: ctx.params.owner,
+                        }
+                    });
+                } catch (err) {
+                    console.error(`Error in update group owner`, err);
+
+                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+                    return { name: err.name, message: err?.response?.message || err.message, success: false };
+                }
+            }
+        },
         updateGroup: {
             rest: {
                 method: "PUT",
@@ -319,7 +347,6 @@ module.exports = {
             body: {
                 groupId: "string",
                 displayName: "string",
-                owner: "string",
                 name: "string"
             },
             async handler(ctx) {
