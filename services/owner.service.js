@@ -2,6 +2,7 @@
 
 const DbMixin = require('../mixins/db.mixin');
 const OwnerRequest = require('../models/owner/OwnerRequest');
+const { validations } = require('../validation');
 
 /**
  * owner service
@@ -45,6 +46,8 @@ module.exports = {
       },
       params: OwnerRequest,
       async handler(ctx) {
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
+
         const request = ctx.params;
         request.createdAt = new Date();
         request.status = 'Pending';
@@ -70,11 +73,13 @@ module.exports = {
       params: { id: { type: 'string' } },
       async handler(ctx) {
         try {
-          return await this.adapter.updateById(ctx.params.id, {
+          const ownerRequest = await this.adapter.updateById(ctx.params.id, {
             $set: {
               status: 'Approved',
             },
           });
+
+          return await this.broker.call('ad.updateGroupOwner', { groupId: ownerRequest?.groupId, owner: ownerRequest?.creator  });
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');
@@ -119,6 +124,8 @@ module.exports = {
       },
       params: { id: { type: 'string' } },
       async handler(ctx) {
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
+
         try {
           const res = await this.adapter.find({
             creator: ctx.params.id,
@@ -162,9 +169,6 @@ module.exports = {
    * Events
    */
   events: {
-    async 'some.thing'(ctx) {
-      this.logger.info('Something happened', ctx.params);
-    },
   },
 
   /**

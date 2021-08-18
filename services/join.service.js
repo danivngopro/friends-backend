@@ -2,6 +2,7 @@
 
 const DbMixin = require('../mixins/db.mixin');
 const JoinRequest = require('../models/join/JoinRequest');
+const { validations } = require('../validation');
 
 /**
  * join service
@@ -45,6 +46,8 @@ module.exports = {
       },
       params: JoinRequest,
       async handler(ctx) {
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
+
         const request = ctx.params;
         request.createdAt = new Date();
         request.status = 'Pending';
@@ -70,11 +73,13 @@ module.exports = {
       params: { id: { type: 'string' } },
       async handler(ctx) {
         try {
-          return await this.adapter.updateById(ctx.params.id, {
+          const request = await this.adapter.updateById(ctx.params.id, {
             $set: {
               status: 'Approved',
             },
           });
+
+          return await this.broker.call('ad.groupsAdd', { groupId: request?.groupId, users: [request?.creator] });
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');
@@ -119,6 +124,8 @@ module.exports = {
       },
       params: { id: { type: 'string' } },
       async handler(ctx) {
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
+
         try {
           const res = await this.adapter.find({
             creator: ctx.params.id,
@@ -162,9 +169,6 @@ module.exports = {
    * Events
    */
   events: {
-    async 'some.thing'(ctx) {
-      this.logger.info('Something happened', ctx.params);
-    },
   },
 
   /**

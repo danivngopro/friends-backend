@@ -44,7 +44,29 @@ services:
       - nats
     networks:
       - internal
-
+  ad:
+    build:
+      context: .
+    image: friends-backend
+    env_file: docker-compose.env
+    environment:
+      AD_SERVICE_DNS: EXAMPLE
+      SERVICES: ad
+    depends_on: 
+      -  nats
+    networks: 
+      -  internal
+  groupId:
+    build:
+      context: .
+    image: friends-backend
+    env_file: docker-compose.env
+    environment:
+      SERVICES: groupId
+    depends_on: 
+      -  nats
+    networks: 
+      -  internal
   products:
     build:
       context: .
@@ -91,7 +113,7 @@ services:
       - 6379:6379
 
   outgoing-proxy-service:
-    image: spike-porxy-service
+    image: friends.azurecr.io/spike-proxy-service
     environment:
       MODE: outgoing
       PORT: 8000
@@ -106,7 +128,7 @@ services:
       - 8010:8000
 
   authentication-service:
-    image: authentication-service
+    image: friends.azurecr.io/authentication-service
     build: .
     ports:
       - '8004:3000'
