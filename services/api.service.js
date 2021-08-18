@@ -47,7 +47,7 @@ module.exports = {
                 autoAliases: true,
 
                 aliases: {
-                    "GET /users": "users.searchApprover",
+                    "GET /": "users.searchApprover",
                     "GET /users/kartoffel/:id": "users.getByKartoffelId",
                     "GET /users/domainuser/:domainuser":
                         "users.getPersonByDomainUser",

@@ -39,10 +39,13 @@ module.exports = {
 		searchUsers: {
             rest: {
 				method: "GET",
-				path: "/users",
+				path: "/",
+			},
+			params: {
+				partialName: "string"
 			},
 			async handler(ctx) {
-				return {};
+				return await this.broker.call('ad.users', { partialName: ctx.params.partialName });
 			},
         },
 
