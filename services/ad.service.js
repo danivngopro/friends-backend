@@ -33,8 +33,13 @@ module.exports = {
             },
 			async handler(ctx) {
                 try {
+                    this.logger.info(`[ad.service] users.handler: ${ctx.params.partialName}`);
                     schemas.partialName.validate(ctx.params);
-                    const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.params.partialName}`);
+                    const res = await axios.get(`${ad.AD_SERVICE_URL}/User`, {
+                        params: {
+                            user: ctx.params.partialName,
+                        },
+                    });
 
                     if (!res.data) throw Error(`Couldn't find any user with the name: ${ctx.params.partialName}`);
 
@@ -56,6 +61,7 @@ module.exports = {
             },
             async handler(ctx) {
                 try {
+                    this.logger.info(`[ad.service] groupById.handler: ${ctx.params.groupId}`);
                     schemas.groupId.validate(ctx.params);
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/${ctx.params.groupId}`);
 
@@ -82,9 +88,14 @@ module.exports = {
             },
             async handler(ctx) {
                 try {
+                    this.logger.info(`[ad.service] groupsSearchDistribution.handler: ${ctx.params.partialName}`);
                     schemas.partialName.validate(ctx.params);
 
-                    const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/Distribution/${ctx.params.partialName}`);
+                    const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/Distribution`, {
+                        params: {
+                            group: ctx.params.partialName,
+                        },
+                    });
 
                     if (!res.data) throw Error(`Couldn't find any distribution group with the name: ${ctx.params.partialName}`);
                     
@@ -106,8 +117,13 @@ module.exports = {
             },
             async handler(ctx) {
                 try {
+                    this.logger.info(`[ad.service] groupsSearchSecure.handler: ${ctx.params.partialName}`);
                     schemas.partialName.validate(ctx.params);
-                    const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/Security/${ctx.params.partialName}`);
+                    const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/Security`, {
+                        params: {
+                            group: ctx.params.partialName,
+                        },
+                    });
 
                     if (!res.data) throw Error(`Couldn't find any secured group with the name: ${ctx.params.partialName}`);
                     
