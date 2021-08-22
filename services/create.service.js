@@ -57,6 +57,7 @@ module.exports = {
           if (!ctx.params.group.members.includes(ctx.meta.user.id)) {
             ctx.params.group.members.push(ctx.meta.user.id);
           }
+          ctx.params.group.owner = ctx.meta.user.mail.split('@')[0];
           
           const res = await this.adapter.insert(ctx.params);
           ctx.emit("mail.create", request)
