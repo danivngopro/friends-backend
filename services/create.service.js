@@ -44,22 +44,22 @@ module.exports = {
         method: 'POST',
         path: '/request',
       },
-      params: CreateRequest,
+      body: CreateRequest,
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.creator);
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
 
-        const request = ctx.params;
+        const request = ctx.body;
         request.createdAt = new Date();
         request.status = 'Pending';
         try {
-          await schemas.createGroup.validateAsync(ctx.params.group);
+          await schemas.createGroup.validateAsync(ctx.body.group);
           
-          if (!ctx.params.group.members.includes(ctx.meta.user.id)) {
-            ctx.params.group.members.push(ctx.meta.user.id);
+          if (!ctx.body.group.members.includes(ctx.meta.user.id)) {
+            ctx.body.group.members.push(ctx.meta.user.id);
           }
-          ctx.params.group.owner = ctx.meta.user.mail.split('@')[0];
+          ctx.body.group.owner = ctx.meta.user.mail.split('@')[0];
           
-          const res = await this.adapter.insert(ctx.params);
+          const res = await this.adapter.insert(ctx.body);
           ctx.emit("mail.create", request)
           return res;
         } catch (err) {
@@ -79,7 +79,6 @@ module.exports = {
         method: 'PUT',
         path: '/request/approve/:id',
       },
-      params: { id: { type: 'string' } },
       async handler(ctx) {
         try {
           const newGroup = await this.adapter.updateById(ctx.params.id, {
@@ -106,7 +105,6 @@ module.exports = {
         method: 'PUT',
         path: '/request/deny/:id',
       },
-      params: { id: { type: 'string' } },
       async handler(ctx) {
         try {
           return await this.adapter.updateById(ctx.params.id, {
@@ -129,15 +127,12 @@ module.exports = {
     requestsByCreator: {
       rest: {
         method: 'GET',
-        path: '/requests/creator/:id',
+        path: '/requests/creator',
       },
-      params: { id: { type: 'string' } },
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
-
         try {
           const res = await this.adapter.find({
-            creator: ctx.params.id,
+            creator: ctx.meta.user.id,
           });
 
           return { requests: res };
@@ -156,14 +151,14 @@ module.exports = {
     requestsByApprover: {
       rest: {
         method: 'GET',
-        path: '/requests/approver/:id',
+        path: '/requests/approver',
       },
-      params: { id: { type: 'string' } },
       async handler(ctx) {
-        // ctx.emit("mail.create", request)
         try {
+          ctx.emit("mail.create", request)
           const res = await this.adapter.find({
-            approver: ctx.params.id,
+            approver: ctx.meta.user.id,
+            status: 'Pending',
           });
 
           return { requests: res };

@@ -44,15 +44,15 @@ module.exports = {
         method: 'POST',
         path: '/request',
       },
-      params: JoinRequest,
+      body: JoinRequest,
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
 
-        const request = ctx.params;
+        const request = ctx.body;
         request.createdAt = new Date();
         request.status = 'Pending';
         try {
-          const res = await this.adapter.insert(ctx.params);
+          const res = await this.adapter.insert(ctx.body);
           ctx.emit("mail.join", request)
           return res;
         } catch (err) {
@@ -122,15 +122,12 @@ module.exports = {
     requestsByCreator: {
       rest: {
         method: 'GET',
-        path: '/requests/creator/:id',
+        path: '/requests/creator',
       },
-      params: { id: { type: 'string' } },
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.params.id);
-
         try {
           const res = await this.adapter.find({
-            creator: ctx.params.id,
+            creator: ctx.meta.user.id,
           });
 
           return { requests: res };
@@ -149,13 +146,13 @@ module.exports = {
     requestsByApprover: {
       rest: {
         method: 'GET',
-        path: '/requests/approver/:id',
+        path: '/requests/approver',
       },
-      params: { id: { type: 'string' } },
       async handler(ctx) {
         try {
           const res = await this.adapter.find({
-            approver: ctx.params.id,
+            approver: ctx.meta.user.id,
+            status: 'Pending',
           });
 
           return { requests: res };

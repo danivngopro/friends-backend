@@ -50,41 +50,13 @@ module.exports = {
                 }
 			}
 		},
-
-        groupById: {
-            rest: {
-                method: "GET",
-                path: "/groups/:groupId",
-            },
-            params: {
-                groupId: "string"                
-            },
-            async handler(ctx) {
-                try {
-                    this.logger.info(`[ad.service] groupById.handler: ${ctx.params.groupId}`);
-                    schemas.groupId.validate(ctx.params);
-                    const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/${ctx.params.groupId}`);
-
-                    if (!res.data) throw Error(`Couldn't find group with the groupId: ${ctx.params.groupId}`);
-                    
-                    this.logger.info('returning group:', ctx.params.groupId);
-                    return res.data;
-                } catch(err) {
-                    this.logger.error('error occured in finding group by id:', ctx.params.groupId);
-
-                    ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: err?.response?.message || err.message, success: false };
-                }
-			}
-        },
-
         groupsSearchDistribution: {
             rest: {
                 method: "GET",
                 path: "/groups/distribution",
             },
             params: {
-                partialName: "string"                
+                partialName: "string"
             },
             async handler(ctx) {
                 try {
@@ -134,7 +106,6 @@ module.exports = {
                 }
 			}
         },
-
         groupsAdd: {
             body: {
                 groupId: "string",
@@ -219,14 +190,11 @@ module.exports = {
         userGroups: {
             rest: {
                 method: "GET",
-                path: "/groups/user/:userId"
-            },
-            params: {
-                userId: "string"
+                path: "/groups/user"
             },
             async handler(ctx) {
 				try {
-                    const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.params.userId}/groups`);
+                    const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.meta.user.mail.split('@')[0]}/groups`);
                     return res.data;
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
@@ -239,10 +207,6 @@ module.exports = {
                 method: "DELETE",
                 path: "/group/:groupId"
             },
-            params: {
-                groupId: "string"
-            },
-
             async handler(ctx) {
                 try {
                     const res = await axios.delete(`${ad.AD_SERVICE_URL}/Group`, {
@@ -305,22 +269,24 @@ module.exports = {
                 }
 			}
         },
-        getGroup: {
+        groupById: {
             rest: {
                 method: "GET",
-                path: "/group/:groupId"
-            },
-            params: {
-                groupId: "string",
+                path: "/groups/:groupId",
             },
             async handler(ctx) {
-				try {
+                try {
+                    this.logger.info(`[ad.service] groupById.handler: ${ctx.params.groupId}`);
+                    schemas.groupId.validate(ctx.params);
                     const res = await axios.get(`${ad.AD_SERVICE_URL}/Group/${ctx.params.groupId}`);
 
-                    if (!res.data) throw Error(`Couldn't find any group with the groupId: ${ctx.params.groupId}`);
+                    if (!res.data) throw Error(`Couldn't find group with the groupId: ${ctx.params.groupId}`);
                     
+                    this.logger.info('returning group:', ctx.params.groupId);
                     return res.data;
                 } catch(err) {
+                    this.logger.error('error occured in finding group by id:', ctx.params.groupId);
+
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
                     return { name: err.name, message: err?.response?.message || err.message, success: false };
                 }

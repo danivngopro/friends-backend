@@ -3,6 +3,56 @@
 # friends-backend
 This is a [Moleculer](https://moleculer.services/)-based microservices project. Generated with the [Moleculer CLI](https://moleculer.services/docs/0.14/moleculer-cli.html).
 
+## API
+
+### Users
+| Purpose | Path | Method | Params | Body | Return value |
+| ------- | ---- | ------ | ------ | ---- | ------------ |
+| Search users in the AD | /api/users  | GET | partialName | X | [{ displayName: string, sAMAccountName: string }] |
+| Get by kartoffel id | /api/users/kartoffel/:id | GET | X | X | KartoffelUser |
+| Get by domain user | /api/users/domainuser/:domainuser | GET | X | X | KartoffelUser |
+| If user is super | /api/users/super | GET | X | X | Boolean |
+| If user is approver | /api/users/approver | GET | X | X | Boolean |
+| Search approvers | /api/users/approvers | GET | pratialName | X | [KartoffelUser] |
+
+### Join
+| Purpose | Path | Method | Params | Body | Return value |
+| ------- | ---- | ------ | ------ | ---- | ------------ |
+| Create join request | /api/join/request | POST | X | JoinRequest | JoinRequest |
+| Approve join request | /api/join/approve/:id | PUT | X | X | X |
+| Deny join request | /api/join/deny/:id | PUT | X | X | X |
+| Get join requests created by the user | /api/join/requests/creator | X | X | { requests: [JoinRequest] } |
+| Get pending join requests that can be approved by the user | /api/join/requests/approver | X | X | { requests: [JoinRequest] } |
+
+### Owner
+| Purpose | Path | Method | Params | Body | Return value |
+| ------- | ---- | ------ | ------ | ---- | ------------ |
+| Create owner request | /api/owner/request | POST | X | OwnerRequest | OwnerRequest |
+| Approve owner request | /api/owner/approve/:id | PUT | X | X | X |
+| Deny owner request | /api/owner/deny/:id | PUT | X | X | X |
+| Get owner requests created by the user | /api/owner/requests/creator | X | X | { requests: [OwnerRequest] } |
+| Get pending owner requests that can be approved by the user | /api/owner/requests/approver | X | X | { requests: [OwnerRequest] } |
+
+### Create
+| Purpose | Path | Method | Params | Body | Return value |
+| ------- | ---- | ------ | ------ | ---- | ------------ |
+| Create create request | /api/create/request | POST | X | CreateRequest | CreateRequest |
+| Approve create request | /api/create/approve/:id | PUT | X | X | X |
+| Deny create request | /api/create/deny/:id | PUT | X | X | X |
+| Get create requests created by the user | /api/create/requests/creator | X | X | { requests: [CreateRequest] } |
+| Get pending create requests that can be approved by the user | /api/create/requests/approver | X | X | { requests: [CreateRequest] } |
+
+### AD service
+| Purpose | Path | Method | Params | Body | Return value |
+| ------- | ---- | ------ | ------ | ---- | ------------ |
+| Get group by id | /api/ad/groups/:groupId | GET | X | X | ? |
+| Search distribution groups by name | /api/ad/groups/distribution | GET | partialName | X | ? |
+| Search security groups by name | /api/ad/groups/security | GET | partialName | X | ? |
+| Get user's groups | /api/ad/groups/user | GET | X | X | ? |
+| Delete group by id | /api/ad/group/:groupId | DELETE | X | X | { success: Boolean } |
+| Remove users from group | /api/ad/group/users | DELETE | X | { groupId: string, users: [string] } | ? |
+| Update group (group name or group display name) | /api/ad/group/:groupId | PUT | X | { groupId: string, displayName: string, name: string } | { message: 'successfully updated all parameters' , success: true } |
+
 ## Usage
 Start the project with `npm run dev` command. 
 After starting, open the http://localhost:3000/ URL in your browser. 

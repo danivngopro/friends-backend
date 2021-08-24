@@ -46,15 +46,7 @@ module.exports = {
                 // The gateway will dynamically build the full routes from service schema.
                 autoAliases: true,
 
-                aliases: {
-                    "GET /": "users.searchApprover",
-                    "GET /users/kartoffel/:id": "users.getByKartoffelId",
-                    "GET /users/domainuser/:domainuser":
-                        "users.getPersonByDomainUser",
-                    "GET /users/approver": "users.isApprover",
-                    "GET /users/approvers/:partialname": "users.searchApprover",
-                    "GET /users/isSuper": "users.isSuper"
-                },
+                aliases: {},
 
                 /** 
 		 * Before call hook. You can check the request.

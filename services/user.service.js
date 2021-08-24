@@ -70,8 +70,9 @@ module.exports = {
 		 * @param {String} kartoffelId
 		 */
 		getByKartoffelId: {
-            params: {
-				id: "string",
+			rest: {
+				method: "GET",
+				path: "/kartoffel/:id",
 			},
 		   async handler(ctx) {
 			const res = await axios.get(
@@ -85,9 +86,10 @@ module.exports = {
 		 * @param {String} domainuser - a unique domain user id
 		 */
 		getPersonByDomainUser: {
-			 params: {
-				 domainuser: "string",
-			 },
+			rest: {
+				method: "GET",
+				path: "/domainuser/:domainuser",
+			},
 			async handler(ctx) {
 				const res = await axios.get(
 					`${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.domainUserBase}/${ctx.params.domainuser}`);
@@ -96,6 +98,10 @@ module.exports = {
         },
 
 		isSuper: {
+			rest: {
+				method: "GET",
+				path: "/users/super",
+			},
 			async handler(ctx) {
 				return this.settings.defaultApproverIds.includes(ctx.meta.user.id);
 			}
@@ -103,14 +109,21 @@ module.exports = {
 
 		/**
 		 * Requests the Kartoffel to search a user
-		 * @param {String} partialname - partial name of the approver
+		 * @param {String} partialName - partial name of the approver
 		 */
         searchApprover: {
+			rest: {
+				method: "GET",
+				path: "/approvers",
+			},
+			params: {
+				partialName: "string",
+			},
 			async handler({ params, meta }) {
 				try {
 					console.time("searchApprover");
 					const hierarchyFilter = meta.user.hierarchy.length > 1 ? meta.user.hierarchy[meta.user.hierarchy.length - 2] : meta.user.hierarchy[meta.user.hierarchy.length - 1];
-					const users = await this.kartoffelSearchHandler(params.partialname, hierarchyFilter);
+					const users = await this.kartoffelSearchHandler(params.partialName, hierarchyFilter);
 					this.logger.info(users);
 					console.timeEnd("searchApprover");
 					return users || [];
@@ -126,6 +139,10 @@ module.exports = {
 		 * @returns whether the user is an approver
 		 */
         isApprover: {
+			rest: {
+				method: "GET",
+				path: "/approver",
+			},
 			async handler(ctx) {
 				const user = ctx.meta.user;
 				if (user?.rank) {
