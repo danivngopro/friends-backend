@@ -48,10 +48,10 @@ This is a [Moleculer](https://moleculer.services/)-based microservices project. 
 | Get group by id | /api/ad/groups/:groupId | GET | X | X | ADGroup |
 | Search distribution groups by name | /api/ad/groups/distribution | GET | partialName | X | [ADGroup] |
 | Search security groups by name | /api/ad/groups/security | GET | partialName | X | [ADGroup] |
-| Get user's groups | /api/ad/groups/user | GET | X | X | ? |
+| Get user's groups | /api/ad/groups/user | GET | X | X | [ADGroup] |
 | Delete group by id | /api/ad/group/:groupId | DELETE | X | X | { success: Boolean } |
-| Remove users from group | /api/ad/group/users | DELETE | X | { groupId: string, users: [string] } | ? |
-| Update group (group name or group display name) | /api/ad/group/:groupId | PUT | X | { groupId: string, displayName: string, name: string } | { message: 'successfully updated all parameters' , success: true } |
+| Remove users from group | /api/ad/group/users | DELETE | X | { groupId: string, users: [string] } | 200 OK |
+| Update group (group name or group display name) | /api/ad/group/:groupId | PUT | X | { groupId: string, displayName: string, name: string } | { message: 'successfully updated all parameters', success: true } |
 
 ### Objects
 #### ADGroup
