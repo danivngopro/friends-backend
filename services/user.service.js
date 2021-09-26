@@ -35,7 +35,8 @@ module.exports = {
 			"סאל": 5,
 			"רסן": 6,
 			"rookie": 7,
-		}
+		},
+		hierarchyFilter: process.env.HIERARCHY_FILTER !== "false",
 	},
 
 	/**
@@ -123,7 +124,12 @@ module.exports = {
 				try {
 					const { params, meta } = ctx;
 					console.time("searchApprover");
-					const hierarchyFilter = meta.user.hierarchy.length > 1 ? meta.user.hierarchy[meta.user.hierarchy.length - 2] : meta.user.hierarchy[meta.user.hierarchy.length - 1];
+					let hierarchyFilter;
+					if (this.settings.hierarchyFilter) {
+						hierarchyFilter = meta.user.hierarchy.length > 1 ? meta.user.hierarchy[meta.user.hierarchy.length - 2] : meta.user.hierarchy[meta.user.hierarchy.length - 1];
+					} else {
+						hierarchyFilter = "";
+					}
 					const users = await this.kartoffelSearchHandler(params.partialName, hierarchyFilter);
 					this.logger.info(users);
 					console.timeEnd("searchApprover");
