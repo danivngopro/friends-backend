@@ -100,7 +100,7 @@ module.exports = {
 		isSuper: {
 			rest: {
 				method: "GET",
-				path: "/users/super",
+				path: "/super",
 			},
 			async handler(ctx) {
 				return this.settings.defaultApproverIds.includes(ctx.meta.user.id);
@@ -119,8 +119,9 @@ module.exports = {
 			params: {
 				partialName: "string",
 			},
-			async handler({ params, meta }) {
+			async handler(ctx) {
 				try {
+					const { params, meta } = ctx;
 					console.time("searchApprover");
 					const hierarchyFilter = meta.user.hierarchy.length > 1 ? meta.user.hierarchy[meta.user.hierarchy.length - 2] : meta.user.hierarchy[meta.user.hierarchy.length - 1];
 					const users = await this.kartoffelSearchHandler(params.partialName, hierarchyFilter);
