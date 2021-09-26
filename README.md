@@ -21,8 +21,8 @@ This is a [Moleculer](https://moleculer.services/)-based microservices project. 
 | Create join request | /api/join/request | POST | X | JoinRequest | JoinRequest |
 | Approve join request | /api/join/approve/:id | PUT | X | X | X |
 | Deny join request | /api/join/deny/:id | PUT | X | X | X |
-| Get join requests created by the user | /api/join/requests/creator | X | X | { requests: [JoinRequest] } |
-| Get pending join requests that can be approved by the user | /api/join/requests/approver | X | X | { requests: [JoinRequest] } |
+| Get join requests created by the user | /api/join/requests/creator | GET | X | { requests: [JoinRequest] } |
+| Get pending join requests that can be approved by the user | /api/join/requests/approver | GET | X | { requests: [JoinRequest] } |
 
 ### Owner
 | Purpose | Path | Method | Params | Body | Return value |
@@ -30,8 +30,8 @@ This is a [Moleculer](https://moleculer.services/)-based microservices project. 
 | Create owner request | /api/owner/request | POST | X | OwnerRequest | OwnerRequest |
 | Approve owner request | /api/owner/approve/:id | PUT | X | X | X |
 | Deny owner request | /api/owner/deny/:id | PUT | X | X | X |
-| Get owner requests created by the user | /api/owner/requests/creator | X | X | { requests: [OwnerRequest] } |
-| Get pending owner requests that can be approved by the user | /api/owner/requests/approver | X | X | { requests: [OwnerRequest] } |
+| Get owner requests created by the user | /api/owner/requests/creator | GET | X | { requests: [OwnerRequest] } |
+| Get pending owner requests that can be approved by the user | /api/owner/requests/approver | GET | X | { requests: [OwnerRequest] } |
 
 ### Create
 | Purpose | Path | Method | Params | Body | Return value |
@@ -39,8 +39,8 @@ This is a [Moleculer](https://moleculer.services/)-based microservices project. 
 | Create create request | /api/create/request | POST | X | CreateRequest | CreateRequest |
 | Approve create request | /api/create/approve/:id | PUT | X | X | X |
 | Deny create request | /api/create/deny/:id | PUT | X | X | X |
-| Get create requests created by the user | /api/create/requests/creator | X | X | { requests: [CreateRequest] } |
-| Get pending create requests that can be approved by the user | /api/create/requests/approver | X | X | { requests: [CreateRequest] } |
+| Get create requests created by the user | /api/create/requests/creator | GET | X | { requests: [CreateRequest] } |
+| Get pending create requests that can be approved by the user | /api/create/requests/approver | GET | X | { requests: [CreateRequest] } |
 
 ### AD service
 | Purpose | Path | Method | Params | Body | Return value |
