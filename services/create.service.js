@@ -46,7 +46,9 @@ module.exports = {
       },
       body: CreateRequest,
       async handler(ctx) {
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
+        ctx.body = ctx.body ? ctx.body : ctx.params;
+        // validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
+        ctx.body.creator = ctx.meta.user.id;
 
         const request = ctx.body;
         request.createdAt = new Date();
@@ -155,7 +157,6 @@ module.exports = {
       },
       async handler(ctx) {
         try {
-          ctx.emit("mail.create", request)
           const res = await this.adapter.find({
             approver: ctx.meta.user.id,
             status: 'Pending',
