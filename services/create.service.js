@@ -88,8 +88,8 @@ module.exports = {
               status: 'Approved',
             },
           });
-          
-          return await this.broker.call('ad.groupsCreate', newGroup?.group);
+
+          return await this.broker.call('ad.groupsCreate', newGroup);
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');
