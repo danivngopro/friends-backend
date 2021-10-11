@@ -46,6 +46,7 @@ module.exports = {
       },
       body: JoinRequest,
       async handler(ctx) {
+        ctx.body ?? (ctx.body = ctx.params);
         validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
 
         const request = ctx.body;

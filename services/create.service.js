@@ -46,7 +46,7 @@ module.exports = {
       },
       body: CreateRequest,
       async handler(ctx) {
-        ctx.body = ctx.body ? ctx.body : ctx.params;
+        ctx.body ?? (ctx.body = ctx.params);
         // validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
         ctx.body.creator = ctx.meta.user.id;
 
