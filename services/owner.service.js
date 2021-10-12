@@ -46,6 +46,7 @@ module.exports = {
       },
       body: OwnerRequest,
       async handler(ctx) {
+        ctx.body ?? (ctx.body = ctx.params);
         validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.approver);
 
         const request = ctx.body;
