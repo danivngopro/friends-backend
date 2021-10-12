@@ -156,11 +156,12 @@ module.exports = {
                     let groupId;
 
                     if (ad.validatedGroupTypes.includes(type)) {
-                        try {
-                            await this.broker.call('ad.groupById', { groupId: groupName });
+                        const doesGroupExists = (await this.broker.call('ad.groupById', { groupId: groupName })).success;
+                        if(doesGroupExists) {
                             ctx.meta.$statusCode = 400;
                             return { name: 'GroupNameExists', message: `The group name ${groupName} already exists`, success: false };
-                        } catch (err) {
+                        }
+                        else{
                             groupId = groupName;
                         }
                     } else {
