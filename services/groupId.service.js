@@ -101,7 +101,6 @@ module.exports = {
     if (!!this.adapter.collection) {
       await this.adapter.collection.createIndex(
         { type: 1 },
-        { unique: true }
       );
       await this.adapter.collection.createIndex(
         { current: 1 }

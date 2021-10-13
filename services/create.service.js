@@ -204,7 +204,6 @@ module.exports = {
     if (!!this.adapter.collection) {
       await this.adapter.collection.createIndex(
         { creator: 1, approver: 1 },
-        { unique: true }
       );
     }
   },
