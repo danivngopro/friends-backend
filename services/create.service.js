@@ -47,7 +47,7 @@ module.exports = {
       body: CreateRequest,
       async handler(ctx) {
         ctx.body ?? (ctx.body = ctx.params);
-        // validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
+        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
         ctx.body.creator = ctx.meta.user.id;
 
         const request = ctx.body;
@@ -59,7 +59,7 @@ module.exports = {
           if (!ctx.body.group.members.includes(ctx.meta.user.id)) {
             ctx.body.group.members.push(ctx.meta.user.id);
           }
-          ctx.body.group.owner = ctx.meta.user.mail.split('@')[0];
+          ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
           
           const res = await this.adapter.insert(ctx.body);
           ctx.emit("mail.create", request)
