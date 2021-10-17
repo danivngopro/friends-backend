@@ -38,11 +38,14 @@ module.exports = {
      */
     events: {
         async "mail.join"(payload) {
-            const [creatorUser, approverUser, group] = await Promise.all([
+            const [creatorUser, group] = await Promise.all([
                 this.broker.call('users.getByKartoffelId', { id: payload.creator }),
-                this.broker.call('users.getByKartoffelId', { id: payload.approver }),
                 this.broker.call('ad.groupById', { groupId: payload.groupId }),
             ]);
+            const approverUser = {
+                mail: `${payload.approver.sAMAccountName}@idf.il`,
+                fullName: payload.approver.displayName.split('/').pop().split('-')[1],
+              };
 
             const mailObject = {
                 from: this.settings.mailUserFrom,
@@ -74,11 +77,12 @@ module.exports = {
 
         async "mail.create"(payload) {
             const group = payload.group;
-            const [creatorUser, approverUser] = await Promise.all([
-                this.broker.call('users.getByKartoffelId', { id: payload.creator }),
-                this.broker.call('users.getByKartoffelId', { id: payload.approver }),
-            ]);
-
+            const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.creator }),
+            const approverUser = {
+                mail: `${payload.approver.sAMAccountName}@idf.il`,
+                fullName: payload.approver.displayName.split('/').pop().split('-')[1],
+              };
+        
             const mailObject = {
                 from: this.settings.mailUserFrom,
                 to: [creatorUser.mail],
@@ -108,10 +112,12 @@ module.exports = {
         },
 
         async "mail.owner"(payload) {
-            const [approverUser, group] = await Promise.all([
-                this.broker.call('users.getByKartoffelId', { id: payload.approver }),
-                this.broker.call('ad.groupById', { groupId: payload.groupId }),
-            ]);
+            const group = await this.broker.call('ad.groupById', { groupId: payload.groupId }),
+            const approverUser = {
+                mail: `${payload.approver.sAMAccountName}@idf.il`,
+                fullName: payload.approver.displayName.split('/').pop().split('-')[1],
+              };
+
             const mailObject = {
                 from: this.settings.mailUserFrom,
                 to: [approverUser.mail],
