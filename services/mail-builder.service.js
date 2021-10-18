@@ -42,10 +42,11 @@ module.exports = {
                 this.broker.call('users.getByKartoffelId', { id: payload.creator }),
                 this.broker.call('ad.groupById', { groupId: payload.groupId }),
             ]);
-            const approverUser = {
-                mail: `${payload.approver.sAMAccountName}@idf.il`,
-                fullName: payload.approver.displayName.split('/').pop().split('-')[1],
-              };
+            const approverUser = await this.broker.call(
+                'users.getPersonByDomainUser',
+                { domainuser: payload.approver.sAMAccountName }
+              );
+            this.logger.info(approverUser);
 
             const mailObject = {
                 from: this.settings.mailUserFrom,
@@ -77,11 +78,12 @@ module.exports = {
 
         async "mail.create"(payload) {
             const group = payload.group;
-            const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.creator }),
-            const approverUser = {
-                mail: `${payload.approver.sAMAccountName}@idf.il`,
-                fullName: payload.approver.displayName.split('/').pop().split('-')[1],
-              };
+            const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.creator });
+            const approverUser = await this.broker.call(
+                'users.getPersonByDomainUser',
+                { domainuser: payload.approver.sAMAccountName }
+            );
+            this.logger.info(approverUser);
         
             const mailObject = {
                 from: this.settings.mailUserFrom,
@@ -112,11 +114,12 @@ module.exports = {
         },
 
         async "mail.owner"(payload) {
-            const group = await this.broker.call('ad.groupById', { groupId: payload.groupId }),
-            const approverUser = {
-                mail: `${payload.approver.sAMAccountName}@idf.il`,
-                fullName: payload.approver.displayName.split('/').pop().split('-')[1],
-              };
+            const group = await this.broker.call('ad.groupById', { groupId: payload.groupId });
+            const approverUser = await this.broker.call(
+                'users.getPersonByDomainUser',
+                { domainuser: payload.approver.sAMAccountName }
+              );
+            this.logger.info(approverUser);
 
             const mailObject = {
                 from: this.settings.mailUserFrom,

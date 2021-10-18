@@ -62,6 +62,7 @@ module.exports = {
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
           
           const res = await this.adapter.insert(ctx.body);
+          this.logger.info(res);
           ctx.emit("mail.create", request)
           return res;
         } catch (err) {
