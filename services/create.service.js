@@ -69,12 +69,11 @@ module.exports = {
             ctx.meta.user.rank === this.settings.autoApproveRank
           ) {
             request.status = 'Approved';
+            const res = await this.adapter.insert(ctx.body);
+            this.logger.info(res);
             return await this.broker.call('ad.groupsCreate', ctx.body.group);
           }
-          else {
-            request.status = 'Pending';
-          }
-          
+          request.status = 'Pending';
           const res = await this.adapter.insert(ctx.body);
           this.logger.info(res);
           
