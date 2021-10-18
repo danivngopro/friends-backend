@@ -14,8 +14,14 @@ module.exports = {
    * Service settings
    */
   settings: {
-    autoApproveRankAcronym: "רסן",
-    autoApproveRank: "רב סרן"
+    autoApproveRanks: {
+			"ראל": 1,
+			"אלף": 2,
+			"תאל": 3,
+			"אלם": 4,
+			"סאל": 5,
+			"רסן": 6,
+		},
   },
 
   /**
@@ -63,11 +69,7 @@ module.exports = {
           }
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
 
-          if (
-            ctx.meta.user.rank.replace('"', '') ===
-              this.settings.autoApproveRankAcronym ||
-            ctx.meta.user.rank === this.settings.autoApproveRank
-          ) {
+          if (this.settings.autoApproveRanks.includes(ctx.meta.user.rank.replace('"', ''))) {
             request.status = 'Approved';
             const res = await this.adapter.insert(ctx.body);
             this.logger.info(res);
