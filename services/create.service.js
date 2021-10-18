@@ -14,15 +14,8 @@ module.exports = {
    * Service settings
    */
   settings: {
-    sortingRanks: {
-			"ראל": 1,
-			"אלף": 2,
-			"תאל": 3,
-			"אלם": 4,
-			"סאל": 5,
-			"רסן": 6,
-			"rookie": 7,
-		},
+    autoApproveRankAcronym: "רסן",
+    autoApproveRank: "רב סרן"
   },
 
   /**
@@ -70,7 +63,11 @@ module.exports = {
           }
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
 
-          if(ctx.meta.user.rank === this.settings.sortingRanks[sixthValue.rank]) {
+          if (
+            ctx.meta.user.rank.replace('"', '') ===
+              this.settings.autoApproveRankAcronym ||
+            ctx.meta.user.rank === this.settings.autoApproveRank
+          ) {
             request.status = 'Approved';
             return await this.broker.call('ad.groupsCreate', ctx.body.group);
           }
