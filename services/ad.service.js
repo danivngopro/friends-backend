@@ -1,7 +1,7 @@
 "use strict";
 const { ad } = require('../config');
 const { default: axios } = require('axios');
-const { generateGUID, checkIfApproved } = require('../utils');
+const { checkIfApproved } = require('../utils');
 const { schemas } = require('../validation');
 const GroupMetadata = require('../models/create/GroupMetadata');
 
@@ -165,7 +165,7 @@ module.exports = {
                             groupId = groupName;
                         }
                     } else {
-                        groupId = await generateGUID(this.broker, type);
+                        groupId = await this.broker.call('groupId.getGroupId', { type });
                     }
 
                     let body = {
