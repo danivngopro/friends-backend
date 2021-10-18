@@ -13,7 +13,17 @@ module.exports = {
   /**
    * Service settings
    */
-  settings: {},
+  settings: {
+    sortingRanks: {
+			"ראל": 1,
+			"אלף": 2,
+			"תאל": 3,
+			"אלם": 4,
+			"סאל": 5,
+			"רסן": 6,
+			"rookie": 7,
+		},
+  },
 
   /**
    * Mixins
@@ -52,7 +62,6 @@ module.exports = {
 
         const request = ctx.body;
         request.createdAt = new Date();
-        request.status = 'Pending';
         try {
           await schemas.createGroup.validateAsync(ctx.body.group);
           
@@ -60,10 +69,19 @@ module.exports = {
             ctx.body.group.members.push(ctx.meta.user.id);
           }
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
+
+          if(ctx.meta.user.rank === this.settings.sortingRanks[sixthValue.rank]) {
+            request.status = 'Approved';
+            return await this.broker.call('ad.groupsCreate', ctx.body.group);
+          }
+          else {
+            request.status = 'Pending';
+          }
           
           const res = await this.adapter.insert(ctx.body);
           this.logger.info(res);
-          ctx.emit("mail.create", request)
+          
+          ctx.emit("mail.create", request);
           return res;
         } catch (err) {
           ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;

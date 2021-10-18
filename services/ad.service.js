@@ -180,7 +180,11 @@ module.exports = {
                         }
                     };
 
+                    this.logger.info(body);
+                    this.logger.info(`${ad.AD_SERVICE_URL}/Group`);
                     const res = await axios.post(`${ad.AD_SERVICE_URL}/Group`, body);
+
+                    ctx.emit("mail.createSuccess", body.data);
                     return res.data;
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;

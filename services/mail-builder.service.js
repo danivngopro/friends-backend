@@ -113,6 +113,31 @@ module.exports = {
             })
         },
 
+        async "mail.createSuccess"(payload) {
+            const group = payload;
+            const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.owner });
+        
+            const mailObject = {
+                from: this.settings.mailUserFrom,
+                to: [creatorUser.mail],
+                title: "test",
+                html: this.createSuccessHTML(creatorUser, group),
+            };
+
+            // send mail
+            axios.post(config.MAILER_SERVICE_URL, mailObject).then(res => {
+                this.logger.info('Sent mail.');
+            }).catch(err => {
+                this.logger.error('Failed sending mail', err.message);
+            })
+
+            axios.post(config.MAILER_SERVICE_URL, mailConfirmObject).then(res => {
+                this.logger.info('Sent mail.');
+            }).catch(err => {
+                this.logger.error('Failed sending mail', err.message);
+            })
+        },
+
         async "mail.owner"(payload) {
             const group = await this.broker.call('ad.groupById', { groupId: payload.groupId });
             const approverUser = await this.broker.call(
@@ -186,6 +211,21 @@ module.exports = {
 			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
             <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <p style="font-size: 18px; text-align: right;"><strong>מפקד מאשר: </strong>${approverUser.fullName}</p>
+            <br />
+            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
+            </div>`
+        },
+        createSuccessHTML(owner, group){
+            return `<div style="justify-content:center; align-items:center; text-align: center; font-family: Arial, Helvetica, sans-serif; direction: rtl;">
+            <span style="width:300px">${logoTag.logoTag}</span>
+            <br />
+            <h2>בקשתך הוגשה בהצלחה</h2>
+            <p style="font-size: 18px; text-align: right;">שלום ${owner.fullName},</p>
+            <p style="font-size: 18px; text-align: right;">קבוצתך נוצרה בהצלחה</p>
+            <p style="font-size: 18px; text-align: right;">&nbsp;</p>
+            <p style="font-size: 18px; text-align: right;"><strong>שם קבוצה: </strong>${group.groupName ? group.groupName : group.displayName}</p>
+			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
+            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <br />
             <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
             </div>`
