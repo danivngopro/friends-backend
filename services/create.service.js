@@ -69,7 +69,7 @@ module.exports = {
           }
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
 
-          if (this.settings.autoApproveRanks.includes(ctx.meta.user.rank.replace('"', ''))) {
+          if (Object.keys(this.settings.autoApproveRanks).includes(ctx.meta.user.rank.replace('"', ''))) {
             request.status = 'Approved';
             const res = await this.adapter.insert(ctx.body);
             this.logger.info(res);
