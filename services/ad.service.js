@@ -149,6 +149,7 @@ module.exports = {
             body: GroupMetadata,
             async handler(ctx) {
                 try {
+                    this.logger.info(`Creating group ${ctx.params}`);
                     await schemas.createGroup.validateAsync(ctx.params);
                     await checkIfApproved(this.broker, ctx.params.members.length);
 
@@ -183,6 +184,7 @@ module.exports = {
                     this.logger.info(body);
                     this.logger.info(`${ad.AD_SERVICE_URL}/Group`);
                     const res = await axios.post(`${ad.AD_SERVICE_URL}/Group`, body);
+                    this.logger.info('ad service res' + res);
 
                     ctx.emit("mail.createSuccess", body.data);
                     return res.data;

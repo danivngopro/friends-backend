@@ -100,12 +100,16 @@ module.exports = {
       },
       async handler(ctx) {
         try {
-          const newGroup = await this.adapter.updateById(ctx.params.id, {
+          const newGroup = await this.adapter.findById(ctx.params.id);
+          this.logger.info('newGroup ' + newGroup.group);
+
+          await this.adapter.updateById(ctx.params.id, {
             $set: {
               status: 'Approved',
             },
           });
-
+          delete newGroup.createdAt;
+          delete newGroup.status;
           return await this.broker.call('ad.groupsCreate', newGroup);
         } catch (err) {
           console.error(err);

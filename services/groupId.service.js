@@ -92,11 +92,11 @@ module.exports = {
    */
   async afterConnected() {
     const { types } = groupId;
-    types.forEach(async (type) => {
-        if (!await this.adapter.find({ type })) {
+    await Promise.all(types.map(async (type) => {
+        if ((await this.adapter.find({ type })).length === 0) {
             await this.adapter.insert({ type, current: 0 });
-        }
-    })
+          }
+        }));
 
     if (!!this.adapter.collection) {
       await this.adapter.collection.createIndex(
