@@ -101,7 +101,10 @@ module.exports = {
       async handler(ctx) {
         try {
           const newGroup = await this.adapter.findById(ctx.params.id);
-          this.logger.info('newGroup ' + newGroup.group);
+          this.logger.info('newGroup: ');
+          this.logger.info(newGroup);
+          this.logger.info('newGroup.group: ');
+          this.logger.info(newGroup.group);
 
           await this.adapter.updateById(ctx.params.id, {
             $set: {

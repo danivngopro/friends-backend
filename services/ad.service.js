@@ -149,7 +149,8 @@ module.exports = {
             body: GroupMetadata,
             async handler(ctx) {
                 try {
-                    this.logger.info(`Creating group ${ctx.params}`);
+                    this.logger.info(`Creating group: `);
+                    this.logger.info(ctx.params);
                     await schemas.createGroup.validateAsync(ctx.params);
                     await checkIfApproved(this.broker, ctx.params.members.length);
 
