@@ -167,7 +167,9 @@ module.exports = {
                             groupId = groupName;
                         }
                     } else {
+                        this.logger.info(type);
                         groupId = await this.broker.call('groupId.getGroupId', { type });
+                        this.logger.info(groupId);
                     }
 
                     let body = {

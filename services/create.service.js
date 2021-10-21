@@ -73,6 +73,7 @@ module.exports = {
             request.status = 'Approved';
             const res = await this.adapter.insert(ctx.body);
             this.logger.info(res);
+            ctx.emit("mail.create", request);
             return await this.broker.call('ad.groupsCreate', ctx.body.group);
           }
           request.status = 'Pending';
@@ -103,8 +104,6 @@ module.exports = {
           const newGroup = await this.adapter.findById(ctx.params.id);
           this.logger.info('newGroup: ');
           this.logger.info(newGroup);
-          this.logger.info('newGroup.group: ');
-          this.logger.info(newGroup.group);
 
           await this.adapter.updateById(ctx.params.id, {
             $set: {

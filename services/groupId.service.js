@@ -46,6 +46,7 @@ module.exports = {
         try {
             schemas.type.validate(ctx.params);
             console.log("get group called");
+            this.logger.info(ctc.params.type);
             if (!ctx.params.type) throw Error("Type cannot be null");
 
             const { _id } = await this.adapter.findOne({ type: ctx.params.type });
