@@ -129,6 +129,7 @@ module.exports = {
         try {
           const res = await this.adapter.find({
             creator: ctx.meta.user.id,
+            status: 'Pending',
           });
 
           return { requests: res };
