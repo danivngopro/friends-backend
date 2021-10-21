@@ -78,12 +78,19 @@ module.exports = {
 
         async "mail.create"(payload) {
             const group = payload.group;
-            this.logger.info('Group' + JSON.stringify(group));
+            this.logger.info(JSON.stringify(payload));
             const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.creator });
-            const approverUser = await this.broker.call(
-                'users.getPersonByDomainUser',
-                { domainuser: payload.approver.sAMAccountName }
-            );
+            const approverUser;
+
+            if(payload.approver.sAMAccountName){
+                approverUser = await this.broker.call(
+                    'users.getPersonByDomainUser',
+                    { domainuser: payload.approver.sAMAccountName }
+                );
+            }
+            else{
+                approverUser = await this.broker.call('users.getByKartoffelId', { id: payload.approver });
+            }
             this.logger.info(approverUser);
         
             const mailObject = {
@@ -117,6 +124,7 @@ module.exports = {
         async "mail.createSuccess"(payload) {
             const group = payload;
             const creatorUser = await this.broker.call('users.getPersonByDomainUser', { domainuser: payload.owner });
+            this.logger.info('owner' + JSON.stringify(creatorUser));
         
             const mailObject = {
                 from: this.settings.mailUserFrom,
