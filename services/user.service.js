@@ -1,6 +1,7 @@
 "use strict";
 
 const { default: axios } = require('axios');
+const { config } = require('dotenv');
 const NodeCache = require('node-cache');
 require('dotenv').config();
 
@@ -151,6 +152,9 @@ module.exports = {
 				path: "/approver",
 			},
 			async handler(ctx) {
+				if(!config.SHOULD_READ_APPROVER){
+					return true;
+				}
 				const user = ctx.meta.user;
 				if (user?.rank) {
 					return this.settings.approvedRanks.includes(user.rank);
