@@ -113,7 +113,7 @@ module.exports = {
           });
           delete newGroup.createdAt;
           delete newGroup.status;
-          return await this.broker.call('ad.groupsCreate', newGroup);
+          return await this.broker.call('ad.groupsCreate', newGroup.group);
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');

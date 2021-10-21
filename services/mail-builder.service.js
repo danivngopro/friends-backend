@@ -78,6 +78,7 @@ module.exports = {
 
         async "mail.create"(payload) {
             const group = payload.group;
+            this.logger.info('Group' + JSON.stringify(group));
             const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.creator });
             const approverUser = await this.broker.call(
                 'users.getPersonByDomainUser',
@@ -115,7 +116,7 @@ module.exports = {
 
         async "mail.createSuccess"(payload) {
             const group = payload;
-            const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.owner });
+            const creatorUser = await this.broker.call('users.getPersonByDomainUser', { domainuser: payload.owner });
         
             const mailObject = {
                 from: this.settings.mailUserFrom,
