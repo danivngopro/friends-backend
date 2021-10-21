@@ -80,7 +80,7 @@ module.exports = {
             const group = payload.group;
             this.logger.info(JSON.stringify(payload));
             const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.creator });
-            const approverUser;
+            let approverUser;
 
             if(payload.approver.sAMAccountName){
                 approverUser = await this.broker.call(
