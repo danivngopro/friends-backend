@@ -129,7 +129,8 @@ module.exports = {
         try {
           const res = await this.adapter.find({
             creator: ctx.meta.user.id,
-          });
+          })
+          .filter(request => request.creator === ctx.meta.user.id);
 
           return { requests: res };
         } catch (err) {
@@ -154,7 +155,8 @@ module.exports = {
           const res = await this.adapter.find({
             approver: ctx.meta.user.id,
             status: 'Pending',
-          });
+          })
+          .filter(request => request.approver === ctx.meta.user.id && request.status === 'Pending');
 
           return { requests: res };
         } catch (err) {
