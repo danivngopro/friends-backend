@@ -49,7 +49,7 @@ module.exports = {
           if (!ctx.params.type) throw Error('Type cannot be null');
 
           const { _id } = await this.adapter.findOne({
-            query: { type: ctx.params.type },
+            type: ctx.params.type,
           });
           const { current } = await this.adapter.updateById(_id, {
             $inc: { current: 1 },
