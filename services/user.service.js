@@ -112,35 +112,36 @@ module.exports = {
 		 * Requests the Kartoffel to search a user
 		 * @param {String} partialName - partial name of the approver
 		 */
-        searchApprover: {
+		 searchApproverSecurity: {
 			rest: {
 				method: "GET",
-				path: "/approvers",
+				path: "/approvers/security",
 			},
 			params: {
 				partialName: "string",
 			},
 			async handler(ctx) {
-				try {
-					const { params, meta } = ctx;
-					console.time("searchApprover");
-					let hierarchyFilter;
-					if (this.settings.hierarchyFilter) {
-						hierarchyFilter = meta.user.hierarchy.length > 1 ? meta.user.hierarchy[meta.user.hierarchy.length - 2] : meta.user.hierarchy[meta.user.hierarchy.length - 1];
-					} else {
-						hierarchyFilter = "";
-					}
-					const users = await this.kartoffelSearchHandler(params.partialName, hierarchyFilter);
-					this.logger.info(users);
-					console.timeEnd("searchApprover");
-					return users || [];
-				} catch (err) {
-					ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-                    return { name: err.name, message: err?.response?.message || err.message, success: false };
-				}
+				this.searchApprover({...ctx, isSecurity: true});
 			},
         },
 
+		/**
+		 * Requests the Kartoffel to search a user
+		 * @param {String} partialName - partial name of the approver
+		 */
+		 searchApproverDistribution: {
+			rest: {
+				method: "GET",
+				path: "/approvers/distribution",
+			},
+			params: {
+				partialName: "string",
+			},
+			async handler(ctx) {
+				this.searchApprover({...ctx, isSecurity: false});
+			},
+        },
+			
 		/**
 		 * @params user - the authenticated user
 		 * @returns whether the user is an approver
@@ -179,6 +180,26 @@ module.exports = {
 			return url;
 		},
 
+		async searchApprover(ctx) {
+			try {
+				const { params, meta, isSecurity } = ctx;
+				console.time("searchApprover");
+				let hierarchyFilter;
+				if (this.settings.hierarchyFilter) {
+					hierarchyFilter = meta.user.hierarchy.length > 1 ? meta.user.hierarchy[meta.user.hierarchy.length - 2] : meta.user.hierarchy[meta.user.hierarchy.length - 1];
+				} else {
+					hierarchyFilter = "";
+				}
+				const users = await this.kartoffelSearchHandler(params.partialName, hierarchyFilter, isSecurity);
+				this.logger.info(users);
+				console.timeEnd("searchApprover");
+				return users || [];
+			} catch (err) {
+				ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
+				return { name: err.name, message: err?.response?.message || err.message, success: false };
+			}
+		},
+
 		loadApprovedRanks() {
 			// TODO: Enter all approved ranks (maybe do that from local file configured in env)
 			if (!process.env.PRODUCTION) {
@@ -187,7 +208,7 @@ module.exports = {
 					"rookie"
 				];
 			}
-			const approvedRanks = [ "ראל", "רסן", "סאל", "אלם", "תאל", "אלף" ];
+			const approvedRanks = [ "רסן", "סאל", "אלם", "תאל", "אלף", "ראל"];
 			this.settings.approvedRanks = this.settings.approvedRanks.concat(approvedRanks);
 		},
 
@@ -214,12 +235,12 @@ module.exports = {
 		},
 
 		// NOTICE: Currently only for get requests
-		async kartoffelSearchHandler(partialName, hierarchyValue) {
+		async kartoffelSearchHandler(partialName, hierarchyValue, isSecurity) {
 			try {
 				console.log("kartoffelSearchHandler");
-
+				const approveStartIndex = isSecurity ? this.settings.approvedRanks.indexOf("סאל") : 0;
 				const responses = await Promise.allSettled(
-					this.settings.approvedRanks.map(async(rank) => {
+					this.settings.approvedRanks.slice(approveStartIndex).map(async(rank) => {
 						return (await axios.get(`${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.searchBase}`, { params: {
 							fullName: partialName,
 							rank,
