@@ -124,14 +124,18 @@ module.exports = {
         path: '/requests/creator',
       },
       async handler(ctx) {
+        console.log(ctx.meta.user.id, 'userID');
+        console.log(ctx.meta.user, 'user');
+        console.log(ctx.meta, 'meta');
         try {
+          console.log(ctx.meta.user.id, 'userID');
           const res = await this.adapter.find({
             creator: ctx.meta.user.id,
           });
-
+          console.log(res, 'response');
           return { requests: res };
         } catch (err) {
-          console.error(err);
+          console.error(err, 'error');
           throw new Error("Failed to get creator's requests");
         }
       },
