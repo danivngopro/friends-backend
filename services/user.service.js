@@ -184,16 +184,17 @@ module.exports = {
 		async searchApprover(ctx) {
 			try {
 				const { params, meta, isSecurity } = ctx;
-				console.time("searchApprover");
+				// console.time("searchApprover");
 				let hierarchyFilter;
 				if (this.settings.hierarchyFilter) {
-					hierarchyFilter = meta.user.hierarchy.length > 1 ? meta.user.hierarchy[meta.user.hierarchy.length - 2] : meta.user.hierarchy[meta.user.hierarchy.length - 1];
+					const userHierarchy = meta.user.hierarchy;
+					hierarchyFilter = userHierarchy.slice(0, userHierarchy.length <= 3 ? userHierarchy.length : 3);
 				} else {
-					hierarchyFilter = "";
+					hierarchyFilter = [];
 				}
 				const users = await this.kartoffelSearchHandler(params.partialName, hierarchyFilter, isSecurity);
 				this.logger.info(users);
-				console.timeEnd("searchApprover");
+				// console.timeEnd("searchApprover");
 				return users || [];
 			} catch (err) {
 				ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
@@ -211,7 +212,6 @@ module.exports = {
 			}
 			const approvedRanks = [ "רסן", "סאל", "אלם", "תאל", "אלף", "ראל"];
 			this.settings.approvedRanks = this.settings.approvedRanks.concat(approvedRanks);
-			this.logger.info(this.settings.approvedRanks);
 		},
 
 		async cacheApprovers() {
@@ -237,10 +237,10 @@ module.exports = {
 		},
 
 		// NOTICE: Currently only for get requests
-		async kartoffelSearchHandler(partialName, hierarchyValue, isSecurity) {
+		async kartoffelSearchHandler(partialName, hierarchyArray, isSecurity) {
 			try {
 				console.log("kartoffelSearchHandler");
-				const approveStartIndex = isSecurity ? this.settings.approvedRanks.indexOf("סאל") : 0;
+				const approveStartIndex = isSecurity ? this.settings.approvedRanks.length - this.settings.sortingRanks["סאל"] : 0;
 				const responses = await Promise.allSettled(
 					this.settings.approvedRanks.slice(approveStartIndex).map(async(rank) => {
 						return (await axios.get(`${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.searchBase}`, { params: {
@@ -251,24 +251,23 @@ module.exports = {
 					})
 				);
 
-				let foundedUsers = []
+				let foundUsers = [];
 				
 				responses.map((currentResponse) => {
 					if (currentResponse.status === 'fulfilled') {
 						for (const currUser of currentResponse.value) {
-							if (currUser.hierarchy.includes(hierarchyValue)) {
-								foundedUsers.push(currentResponse.value);
-							}
+							if (hierarchyArray.every((value, index) => currUser.hierarchy[index] === value)) {
+								foundUsers.push(currentResponse.value);
+							  }
 						}
 					}
 				});
 
-				console.log(foundedUsers);
-				foundedUsers = foundedUsers.sort((firstValue, secondValue) => this.settings.sortingRanks[firstValue.rank] >= this.settings.sortingRanks[secondValue.rank]);
-
+				foundUsers = foundUsers.sort((firstValue, secondValue) => this.settings.sortingRanks[firstValue.rank] >= this.settings.sortingRanks[secondValue.rank]);
+				
 				const defaultUsers = kartoffelCaching.get("defaultApprovers") || [];
 
-				return [...defaultUsers, ...foundedUsers];
+				return [...defaultUsers, ...foundUsers];
 			} catch (err) {
 				this.logger.info(err);
 				if (err.response && err.response.status) {
