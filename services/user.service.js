@@ -184,7 +184,7 @@ module.exports = {
 		async searchApprover(ctx) {
 			try {
 				const { params, meta, isSecurity } = ctx;
-				// console.time("searchApprover");
+				console.time("searchApprover");
 				let hierarchyFilter;
 				if (this.settings.hierarchyFilter) {
 					const userHierarchy = meta.user.hierarchy;
@@ -194,7 +194,7 @@ module.exports = {
 				}
 				const users = await this.kartoffelSearchHandler(params.partialName, hierarchyFilter, isSecurity);
 				this.logger.info(users);
-				// console.timeEnd("searchApprover");
+				console.timeEnd("searchApprover");
 				return users || [];
 			} catch (err) {
 				ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
