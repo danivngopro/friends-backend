@@ -195,9 +195,9 @@ module.exports = {
             },
             async handler(ctx) {
                 console.log(ad.AD_SERVICE_URL, 'AD_SERVICE_URL');
-                console.log(ctx.meta.user.mail, 'AD MAIL');
+                console.log(ctx.meta.user.email, 'AD MAIL');
                 try {
-                    const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.meta.user.mail.split('@')[0]}/groups`);
+                    const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.meta.user.email.split('@')[0]}/groups`);
                     return res.data;
                 } catch (err) {
                     console.log(err, 'ERROR');
