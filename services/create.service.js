@@ -94,63 +94,43 @@ module.exports = {
         transaction.appendArray([
           {
             id: "setApproved",
-            action: () =>  {return this.adapter.updateById(ctx.params.id, {
+            action: () =>  {
+              return this.adapter.updateById(ctx.params.id, {
                 $set: {
                   status: 'Approved',
                 },
               })},
             undo: (error) => {
-              console.log("undo");
                this.adapter.updateById(ctx.params.id, {
                 $set: {
                   status: 'Pending',
                 },
               });
-              throw new Error(`Failed to approve a request: ${error}`); }
+              throw new Error(`Failed to create a group: ${error}`); }
           },
           {
             id: "groupsCreate",
             action: (transactionsInfo) => 
             {
               const newGroup = transactionsInfo.previousResponses["setApproved"];
-              return this.broker.call('ad.groupsCreate', newGroup);
+              const {createdAt, ...newGroupWithOutCreatedAt} = newGroup;
+              return this.broker.call('ad.groupsCreate', newGroupWithOutCreatedAt);
             }
 
           },
         ]);
 
-        const transactionsResult= Promise.resolve(transaction.exec()).catch((err) => {
+        const transactionsResult = Promise.resolve(transaction.exec()).catch((err) => {
           throw new Error(`Error: Transaction failed, Probably one of the undo functions failed: ${err}`);
         });
 
-        const { isSuccess, actionsInfo } = await transactionsResult
-        ;
+        const { isSuccess, actionsInfo } = await transactionsResult;
     
         if (isSuccess) {
-          console.log(actionsInfo)
           return actionsInfo.responses.groupsCreate;
         }
     
-        throw new Error(actionsInfo?.errorInfo)
-
-
-    
-        try {
-          const newGroup = await this.adapter.updateById(ctx.params.id, {
-            $set: {
-              status: 'Approved',
-            },
-          });
-          console.log(newGroup);
-          const {createdAt, ...newGroupWithOutCreatedAt} = newGroup;
-          const groupsCreate = await this.broker.call('ad.groupsCreate', newGroupWithOutCreatedAt);
-          console.log(groupsCreate);
-          return groupsCreate;
-
-        } catch (err) {
-          console.error(err);
-          throw new Error('Failed to approve a request');
-        }
+        throw new Error(actionsInfo?.errorInfo);
       },
     },
 
