@@ -44,19 +44,16 @@ module.exports = {
       params: GetRequest,
       async handler(ctx) {
         try {
-          schemas.type.validate(ctx.params);
-          console.log('get group called');
-          if (!ctx.params.type) throw Error('Type cannot be null');
+            schemas.type.validate(ctx.params);
+            console.log("get group called");
+            this.logger.info(ctx.params.type);
+            if (!ctx.params.type) throw Error("Type cannot be null");
 
-          const { _id } = await this.adapter.findOne({
-            type: ctx.params.type,
-          });
-          const { current } = await this.adapter.updateById(_id, {
-            $inc: { current: 1 },
-          });
+            const { _id } = await this.adapter.findOne({ type: ctx.params.type });
+            const { current } = await this.adapter.updateById(_id, { $inc: { current: 1 } });
 
-          const prefix = groupId.prefixIds[ctx.params.type];
-          return `${prefix}${String(current).padStart(groupId.idLength, '0')}`;
+            const prefix = groupId.prefixIds[ctx.params.type];
+            return `${prefix}${String(current).padStart(groupId.idLength, '0')}`
         } catch (err) {
           console.error(err);
           throw new Error('Failed to get the groupId');
@@ -95,11 +92,11 @@ module.exports = {
    */
   async afterConnected() {
     const { types } = groupId;
-    types.forEach(async (type) => {
-      if (!(await this.adapter.find({ query: { type } }))) {
-        await this.adapter.insert({ type, current: 0 });
-      }
-    });
+    await Promise.all(types.map(async (type) => {
+        if ((await this.adapter.find({ type })).length === 0) {
+            await this.adapter.insert({ type, current: 0 });
+          }
+        }));
 
     if (!!this.adapter.collection) {
       await this.adapter.collection.createIndex({ type: 1 });

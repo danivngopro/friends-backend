@@ -38,11 +38,15 @@ module.exports = {
      */
     events: {
         async "mail.join"(payload) {
-            const [creatorUser, approverUser, group] = await Promise.all([
+            const [creatorUser, group] = await Promise.all([
                 this.broker.call('users.getByKartoffelId', { id: payload.creator }),
-                this.broker.call('users.getByKartoffelId', { id: payload.approver }),
                 this.broker.call('ad.groupById', { groupId: payload.groupId }),
             ]);
+            const approverUser = await this.broker.call(
+                'users.getPersonByDomainUser',
+                { domainuser: payload.approver.sAMAccountName }
+              );
+            this.logger.info(approverUser);
 
             const mailObject = {
                 from: this.settings.mailUserFrom,
@@ -74,11 +78,21 @@ module.exports = {
 
         async "mail.create"(payload) {
             const group = payload.group;
-            const [creatorUser, approverUser] = await Promise.all([
-                this.broker.call('users.getByKartoffelId', { id: payload.creator }),
-                this.broker.call('users.getByKartoffelId', { id: payload.approver }),
-            ]);
+            this.logger.info(JSON.stringify(payload));
+            const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.creator });
+            let approverUser;
 
+            if(payload.approver.sAMAccountName){
+                approverUser = await this.broker.call(
+                    'users.getPersonByDomainUser',
+                    { domainuser: payload.approver.sAMAccountName }
+                );
+            }
+            else{
+                approverUser = await this.broker.call('users.getByKartoffelId', { id: payload.approver });
+            }
+            this.logger.info(approverUser);
+        
             const mailObject = {
                 from: this.settings.mailUserFrom,
                 to: [creatorUser.mail],
@@ -107,11 +121,40 @@ module.exports = {
             })
         },
 
+        async "mail.createSuccess"(payload) {
+            const group = payload;
+            const creatorUser = await this.broker.call('users.getPersonByDomainUser', { domainuser: payload.owner });
+            this.logger.info('owner' + JSON.stringify(creatorUser));
+        
+            const mailObject = {
+                from: this.settings.mailUserFrom,
+                to: [creatorUser.mail],
+                title: "test",
+                html: this.createSuccessHTML(creatorUser, group),
+            };
+
+            // send mail
+            axios.post(config.MAILER_SERVICE_URL, mailObject).then(res => {
+                this.logger.info('Sent mail.');
+            }).catch(err => {
+                this.logger.error('Failed sending mail', err.message);
+            })
+
+            axios.post(config.MAILER_SERVICE_URL, mailConfirmObject).then(res => {
+                this.logger.info('Sent mail.');
+            }).catch(err => {
+                this.logger.error('Failed sending mail', err.message);
+            })
+        },
+
         async "mail.owner"(payload) {
-            const [approverUser, group] = await Promise.all([
-                this.broker.call('users.getByKartoffelId', { id: payload.approver }),
-                this.broker.call('ad.groupById', { groupId: payload.groupId }),
-            ]);
+            const group = await this.broker.call('ad.groupById', { groupId: payload.groupId });
+            const approverUser = await this.broker.call(
+                'users.getPersonByDomainUser',
+                { domainuser: payload.approver.sAMAccountName }
+              );
+            this.logger.info(approverUser);
+
             const mailObject = {
                 from: this.settings.mailUserFrom,
                 to: [approverUser.mail],
@@ -177,6 +220,21 @@ module.exports = {
 			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
             <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <p style="font-size: 18px; text-align: right;"><strong>מפקד מאשר: </strong>${approverUser.fullName}</p>
+            <br />
+            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
+            </div>`
+        },
+        createSuccessHTML(owner, group){
+            return `<div style="justify-content:center; align-items:center; text-align: center; font-family: Arial, Helvetica, sans-serif; direction: rtl;">
+            <span style="width:300px">${logoTag.logoTag}</span>
+            <br />
+            <h2>בקשתך הוגשה בהצלחה</h2>
+            <p style="font-size: 18px; text-align: right;">שלום ${owner.fullName},</p>
+            <p style="font-size: 18px; text-align: right;">קבוצתך נוצרה בהצלחה</p>
+            <p style="font-size: 18px; text-align: right;">&nbsp;</p>
+            <p style="font-size: 18px; text-align: right;"><strong>שם קבוצה: </strong>${group.groupName ? group.groupName : group.displayName}</p>
+			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
+            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <br />
             <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
             </div>`

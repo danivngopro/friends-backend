@@ -1,6 +1,7 @@
 "use strict";
 
 const { default: axios } = require('axios');
+const { config } = require('dotenv');
 const NodeCache = require('node-cache');
 require('dotenv').config();
 

@@ -15,7 +15,16 @@ module.exports = {
   /**
    * Service settings
    */
-  settings: {},
+  settings: {
+    autoApproveRanks: {
+			"ראל": 1,
+			"אלף": 2,
+			"תאל": 3,
+			"אלם": 4,
+			"סאל": 5,
+			"רסן": 6,
+		},
+  },
 
   /**
    * Mixins
@@ -57,7 +66,6 @@ module.exports = {
 
         const request = ctx.body;
         request.createdAt = new Date();
-        request.status = 'Pending';
         try {
           await schemas.createGroup.validateAsync(ctx.body.group);
 
@@ -66,8 +74,18 @@ module.exports = {
           }
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
 
+          if (Object.keys(this.settings.autoApproveRanks).includes(ctx.meta.user.rank.replace('"', ''))) {
+            request.status = 'Approved';
+            const res = await this.adapter.insert(ctx.body);
+            this.logger.info(res);
+            ctx.emit("mail.create", request);
+            return await this.broker.call('ad.groupsCreate', ctx.body.group);
+          }
+          request.status = 'Pending';
           const res = await this.adapter.insert(ctx.body);
-          ctx.emit('mail.create', request);
+          this.logger.info(res);
+          
+          ctx.emit("mail.create", request);
           return res;
         } catch (err) {
           ctx.meta.$statusCode =
@@ -151,6 +169,7 @@ module.exports = {
 
         if (isSuccess) {
           return actionsInfo.responses.groupsCreate;
+
         }
         throw new Error(actionsInfo?.errorInfo.error);
       },
