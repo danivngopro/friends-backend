@@ -1,9 +1,11 @@
 'use strict';
 
+const { Transaction } = require('pipe-transaction');
+
 const DbMixin = require('../mixins/db.mixin');
 const CreateRequest = require('../models/create/CreateRequest');
 const { validations, schemas } = require('../validation');
-const { Transaction } = require('pipe-transaction');
+
 /**
  * create service
  */
@@ -93,44 +95,64 @@ module.exports = {
         const transaction = new Transaction({});
         transaction.appendArray([
           {
-            id: "setApproved",
-            action: () =>  {
-              return this.adapter.updateById(ctx.params.id, {
+            id: 'setApproved',
+            action: async () => {
+              const newGroup = await this.adapter.updateById(ctx.params.id, {
                 $set: {
                   status: 'Approved',
                 },
-              })},
-            undo: (error) => {
-               this.adapter.updateById(ctx.params.id, {
+              });
+              if (!newGroup) {
+                throw new Error(
+                  `Failed to update a group. probably the id: '${ctx.params.id}' is wrong`
+                );
+              }
+              return newGroup;
+            },
+
+            undo: () => {
+              this.adapter.updateById(ctx.params.id, {
                 $set: {
                   status: 'Pending',
                 },
               });
-              throw new Error(`Failed to create a group: ${error}`); }
+            },
           },
           {
-            id: "groupsCreate",
-            action: (transactionsInfo) => 
-            {
-              const newGroup = transactionsInfo.previousResponses["setApproved"];
-              const {createdAt, ...newGroupWithOutCreatedAt} = newGroup;
-              return this.broker.call('ad.groupsCreate', newGroupWithOutCreatedAt);
-            }
-
+            id: 'groupsCreate',
+            action: async (transactionsInfo) => {
+              const newGroup =
+                transactionsInfo.previousResponses['setApproved'];
+              const { createdAt, ...newGroupWithOutCreatedAt } = newGroup;
+              const groupsCreate = await this.broker.call(
+                'ad.groupsCreate',
+                newGroupWithOutCreatedAt
+                // TODO: add .group to line above
+              );
+              if (!groupsCreate.success) {
+                throw new Error(
+                  `Failed to create a group: ${groupsCreate.message}`
+                );
+              }
+              return groupsCreate;
+            },
           },
         ]);
 
-        const transactionsResult = Promise.resolve(transaction.exec()).catch((err) => {
-          throw new Error(`Error: Transaction failed, Probably one of the undo functions failed: ${err}`);
-        });
+        const transactionsResult = Promise.resolve(transaction.exec()).catch(
+          (err) => {
+            throw new Error(
+              `Error: Transaction failed, Probably one of the undo functions failed: ${err.toString()}`
+            );
+          }
+        );
 
         const { isSuccess, actionsInfo } = await transactionsResult;
-    
+
         if (isSuccess) {
           return actionsInfo.responses.groupsCreate;
         }
-    
-        throw new Error(actionsInfo?.errorInfo);
+        throw new Error(actionsInfo?.errorInfo.error);
       },
     },
 
