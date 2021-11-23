@@ -122,7 +122,7 @@ module.exports = {
               });
               if (!newGroup) {
                 throw new Error(
-                  `Failed to update a group. probably the id: '${ctx.params.id}' is wrong`
+                  `Failed to update a group. Probably the id: '${ctx.params.id}' is wrong`
                 );
               }
               return newGroup;
@@ -159,7 +159,7 @@ module.exports = {
         const transactionsResult = Promise.resolve(transaction.exec()).catch(
           (err) => {
             throw new Error(
-              `Error: Transaction failed, Probably one of the undo functions failed: ${err.toString()}`
+              `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(err.undoInfo.errorInfo.map((error)=>error.id))}`
             );
           }
         );
@@ -170,7 +170,8 @@ module.exports = {
           return actionsInfo.responses.groupsCreate;
 
         }
-        throw new Error(actionsInfo?.errorInfo.error);
+
+        throw new Error(actionsInfo.errorInfo.error.message);
       },
     },
 
