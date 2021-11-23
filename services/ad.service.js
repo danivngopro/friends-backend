@@ -1,7 +1,7 @@
 "use strict";
 const { ad } = require('../config');
 const { default: axios } = require('axios');
-const { generateGUID, checkIfApproved } = require('../utils');
+const { checkIfApproved } = require('../utils');
 const { schemas } = require('../validation');
 const GroupMetadata = require('../models/create/GroupMetadata');
 
@@ -149,6 +149,8 @@ module.exports = {
             body: GroupMetadata,
             async handler(ctx) {
                 try {
+                    this.logger.info(`Creating group: `);
+                    this.logger.info(ctx.params);
                     await schemas.createGroup.validateAsync(ctx.params);
                     await checkIfApproved(this.broker, ctx.params.members.length);
 
@@ -165,7 +167,9 @@ module.exports = {
                             groupId = groupName;
                         }
                     } else {
-                        groupId = await generateGUID(this.broker, type);
+                        this.logger.info(type);
+                        groupId = await this.broker.call('groupId.getGroupId', { type });
+                        this.logger.info(groupId);
                     }
 
                     let body = {
@@ -180,7 +184,12 @@ module.exports = {
                         }
                     };
 
+                    this.logger.info(body);
+                    this.logger.info(`${ad.AD_SERVICE_URL}/Group`);
                     const res = await axios.post(`${ad.AD_SERVICE_URL}/Group`, body);
+                    this.logger.info('ad service res' + JSON.stringify(res));
+
+                    ctx.emit("mail.createSuccess", body.data);
                     return res.data;
                 } catch (err) {
                     ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
@@ -195,9 +204,9 @@ module.exports = {
             },
             async handler(ctx) {
                 console.log(ad.AD_SERVICE_URL, 'AD_SERVICE_URL');
-                console.log(ctx.meta.user.mail, 'AD MAIL');
+                console.log(ctx.meta.user.email, 'AD MAIL');
                 try {
-                    const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.meta.user.mail.split('@')[0]}/groups`);
+                    const res = await axios.get(`${ad.AD_SERVICE_URL}/User/${ctx.meta.user.email.split('@')[0]}/groups`);
                     return res.data;
                 } catch (err) {
                     console.log(err, 'ERROR');
