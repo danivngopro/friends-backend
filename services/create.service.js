@@ -110,9 +110,8 @@ module.exports = {
               status: 'Approved',
             },
           });
-          delete newGroup.createdAt;
-          delete newGroup.status;
-          return await this.broker.call('ad.groupsCreate', newGroup.group);
+          const {createdAt, status, ...groupWithValidFields} = newGroup
+          return await this.broker.call('ad.groupsCreate', groupWithValidFields.group);
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');
