@@ -138,7 +138,8 @@ module.exports = {
         try {
           console.log(ctx.meta.user.id, 'userID');
           const res = await this.adapter.find({
-            query: { creator: ctx.meta.user.id },
+            query: { creator: ctx.meta.user.id,
+            status: 'Pending' },
           });
           console.log(res, 'response');
           return { requests: res };
