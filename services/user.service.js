@@ -152,9 +152,7 @@ module.exports = {
 				path: "/approver",
 			},
 			async handler(ctx) {
-				if(!config.SHOULD_READ_APPROVER){
-					return true;
-				}
+				if (process.env.AUTO_APPROVE === "true") return true;
 				const user = ctx.meta.user;
 				if (user?.rank) {
 					return this.settings.approvedRanks.includes(user.rank);
@@ -191,8 +189,10 @@ module.exports = {
 					"rookie"
 				];
 			}
+
 			const approvedRanks = [ "ראל", "רסן", "סאל", "אלם", "תאל", "אלף" ];
 			this.settings.approvedRanks = this.settings.approvedRanks.concat(approvedRanks);
+			this.logger.info(this.settings.approvedRanks);
 		},
 
 		async cacheApprovers() {

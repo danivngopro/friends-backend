@@ -47,15 +47,18 @@ module.exports = {
       body: OwnerRequest,
       async handler(ctx) {
         ctx.body ?? (ctx.body = ctx.params);
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.approver);
+        validations.isRequesterAndCreatorTheSame(
+          ctx.meta.user.id,
+          ctx.body.approver
+        );
 
         const request = ctx.body;
         request.createdAt = new Date();
         request.status = 'Pending';
         try {
           const res = await this.adapter.insert(ctx.body);
-          ctx.emit("mail.owner", request)
-          return res
+          ctx.emit('mail.owner', request);
+          return res;
         } catch (err) {
           console.error(err);
           throw new Error('Failed to owner a request');
@@ -81,7 +84,10 @@ module.exports = {
             },
           });
 
-          return await this.broker.call('ad.updateGroupOwner', { groupId: ownerRequest?.groupId, owner: ownerRequest?.creator  });
+          return await this.broker.call('ad.updateGroupOwner', {
+            groupId: ownerRequest?.groupId,
+            owner: ownerRequest?.creator,
+          });
         } catch (err) {
           console.error(err);
           throw new Error('Failed to approve a request');
@@ -124,14 +130,18 @@ module.exports = {
         path: '/requests/creator',
       },
       async handler(ctx) {
+        console.log(ctx.meta.user.id, 'userID');
+        console.log(ctx.meta.user, 'user');
+        console.log(ctx.meta, 'meta');
         try {
+          console.log(ctx.meta.user.id, 'userID');
           const res = await this.adapter.find({
-            creator: ctx.meta.user.id,
+            query: { creator: ctx.meta.user.id },
           });
-
+          console.log(res, 'response');
           return { requests: res };
         } catch (err) {
-          console.error(err);
+          console.error(err, 'error');
           throw new Error("Failed to get creator's requests");
         }
       },
@@ -150,8 +160,10 @@ module.exports = {
       async handler(ctx) {
         try {
           const res = await this.adapter.find({
-            approver: ctx.meta.user.id,
-            status: 'Pending',
+            query: {
+              approver: ctx.meta.user.id,
+              status: 'Pending',
+            },
           });
 
           return { requests: res };
@@ -166,8 +178,7 @@ module.exports = {
   /**
    * Events
    */
-  events: {
-  },
+  events: {},
 
   /**
    * Methods
@@ -194,9 +205,11 @@ module.exports = {
    */
   async afterConnected() {
     if (!!this.adapter.collection) {
-      await this.adapter.collection.createIndex(
-        { creator: 1, approver: 1, groupId: 1 },
-      );
+      await this.adapter.collection.createIndex({
+        creator: 1,
+        approver: 1,
+        groupId: 1,
+      });
     }
   },
 };

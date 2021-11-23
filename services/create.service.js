@@ -56,14 +56,17 @@ module.exports = {
       body: CreateRequest,
       async handler(ctx) {
         ctx.body ?? (ctx.body = ctx.params);
-        validations.isRequesterAndCreatorTheSame(ctx.meta.user.id, ctx.body.creator);
+        validations.isRequesterAndCreatorTheSame(
+          ctx.meta.user.id,
+          ctx.body.creator
+        );
         ctx.body.creator = ctx.meta.user.id;
 
         const request = ctx.body;
         request.createdAt = new Date();
         try {
           await schemas.createGroup.validateAsync(ctx.body.group);
-          
+
           if (!ctx.body.group.members.includes(ctx.meta.user.id)) {
             ctx.body.group.members.push(ctx.meta.user.id);
           }
@@ -83,8 +86,13 @@ module.exports = {
           ctx.emit("mail.create", request);
           return res;
         } catch (err) {
-          ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
-          return { name: err.name, message: err?.response?.message || err.message, success: false };
+          ctx.meta.$statusCode =
+            err.name === 'ValidationError' ? 400 : err.status || 500;
+          return {
+            name: err.name,
+            message: err?.response?.message || err.message,
+            success: false,
+          };
         }
       },
     },
@@ -156,7 +164,7 @@ module.exports = {
       async handler(ctx) {
         try {
           const res = await this.adapter.find({
-            creator: ctx.meta.user.id,
+            query: { creator: ctx.meta.user.id },
           });
 
           return { requests: res };
@@ -180,8 +188,7 @@ module.exports = {
       async handler(ctx) {
         try {
           const res = await this.adapter.find({
-            approver: ctx.meta.user.id,
-            status: 'Pending',
+            query: { approver: ctx.meta.user.id, status: 'Pending' },
           });
 
           return { requests: res };
@@ -196,8 +203,7 @@ module.exports = {
   /**
    * Events
    */
-  events: {
-  },
+  events: {},
 
   /**
    * Methods
@@ -224,9 +230,7 @@ module.exports = {
    */
   async afterConnected() {
     if (!!this.adapter.collection) {
-      await this.adapter.collection.createIndex(
-        { creator: 1, approver: 1 },
-      );
+      await this.adapter.collection.createIndex({ creator: 1, approver: 1 });
     }
   },
 };
