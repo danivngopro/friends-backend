@@ -144,8 +144,7 @@ module.exports = {
               const { createdAt, ...newGroupWithOutCreatedAt } = newGroup;
               const groupsCreate = await this.broker.call(
                 'ad.groupsCreate',
-                newGroupWithOutCreatedAt
-                // TODO: add .group to line above
+                newGroupWithOutCreatedAt.group
               );
               if (!groupsCreate.success) {
                 throw new Error(
