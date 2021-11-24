@@ -55,7 +55,6 @@ module.exports = {
         method: 'POST',
         path: '/request',
       },
-      //TODO: transactions
       body: CreateRequest,
       async handler(ctx) {
         ctx.body ?? (ctx.body = ctx.params);
