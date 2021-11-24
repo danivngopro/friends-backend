@@ -1,14 +1,15 @@
-'use strict';
+"use strict";
+const { Transaction } = require("pipe-transaction");
 
-const DbMixin = require('../mixins/db.mixin');
-const OwnerRequest = require('../models/owner/OwnerRequest');
-const { validations } = require('../validation');
+const DbMixin = require("../mixins/db.mixin");
+const OwnerRequest = require("../models/owner/OwnerRequest");
+const { validations } = require("../validation");
 
 /**
  * owner service
  */
 module.exports = {
-  name: 'owner',
+  name: "owner",
 
   /**
    * Service settings
@@ -18,7 +19,7 @@ module.exports = {
   /**
    * Mixins
    */
-  mixins: [DbMixin('ownerRequests')],
+  mixins: [DbMixin("ownerRequests")],
 
   /**
    * Service metadata
@@ -41,28 +42,76 @@ module.exports = {
      */
     request: {
       rest: {
-        method: 'POST',
-        path: '/request',
-      },
+        method: "POST",
+        path: "/request",
+      }, //TODO: transactions
       body: OwnerRequest,
       async handler(ctx) {
         ctx.body ?? (ctx.body = ctx.params);
         validations.isRequesterAndCreatorTheSame(
           ctx.meta.user.id,
-          ctx.body.approver
+          ctx.body.creator
         );
 
         const request = ctx.body;
-        request.createdAt = new Date();
-        request.status = 'Pending';
-        try {
-          const res = await this.adapter.insert(ctx.body);
-          ctx.emit('mail.owner', request);
-          return res;
-        } catch (err) {
-          console.error(err);
-          throw new Error('Failed to owner a request');
+        const transaction = new Transaction({});
+
+        transaction.appendArray([
+          {
+            id: "insert",
+            action: async () => {
+              return this.adapter.insert(request);
+            },
+            undo: () => this.adapter.deleteById(ctx.params.id),
+          },
+          {
+            id: "mailOwner",
+            action: async () => {
+              request.createdAt = new Date();
+              request.status = "Pending";
+              const mailOwner = await ctx.emit("mail.owner", request);
+              if (!mailOwner.success) {
+                throw new Error(`Failed to join a group: ${mailOwner.message}`);
+              }
+              return mailOwner;
+            },
+          },
+        ]);
+
+        const transactionsResult = Promise.resolve(transaction.exec()).catch(
+          (err) => {
+            throw new Error(
+              `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(
+                err.undoInfo.errorInfo.map((error) => error.id)
+              )}`
+            );
+          }
+        );
+
+        const { isSuccess, actionsInfo } = await transactionsResult;
+
+        if (isSuccess) {
+          return actionsInfo.responses.insert;
         }
+
+        throw new Error(actionsInfo.errorInfo.error.message);
+        // ctx.body ?? (ctx.body = ctx.params);
+        // validations.isRequesterAndCreatorTheSame(
+        //   ctx.meta.user.id,
+        //   ctx.body.approver
+        // );
+
+        // const request = ctx.body;
+        // request.createdAt = new Date();
+        // request.status = "Pending";
+        // try {
+        //   const res = await this.adapter.insert(ctx.body);
+        //   ctx.emit("mail.owner", request);
+        //   return res;
+        // } catch (err) {
+        //   console.error(err);
+        //   throw new Error("Failed to owner a request");
+        // }
       },
     },
 
@@ -73,24 +122,91 @@ module.exports = {
      */
     approve: {
       rest: {
-        method: 'PUT',
-        path: '/request/approve/:id',
-      },
+        method: "PUT",
+        path: "/request/approve/:id",
+      }, //TODO: transactions
       async handler(ctx) {
+        const transaction = new Transaction({});
+        transaction.appendArray([
+          {
+            id: "setApproved",
+            action: async () => {
+              const newGroup = await this.adapter.updateById(ctx.params.id, {
+                $set: {
+                  status: "Approved",
+                },
+              });
+              if (!newGroup) {
+                throw new Error(
+                  `Failed to update a group. Probably the id: '${ctx.params.id}' is wrong`
+                );
+              }
+              return newGroup;
+            },
+
+            undo: () =>
+              this.adapter.updateById(ctx.params.id, {
+                $set: {
+                  status: "Pending",
+                },
+              }),
+          },
+          {
+            id: "updateGroupOwner",
+            action: async (transactionsInfo) => {
+              const ownerRequest =
+                transactionsInfo.previousResponses["setApproved"];
+
+              const updateGroupOwner = await this.broker.call(
+                "ad.updateGroupOwner",
+                {
+                  groupId: ownerRequest?.groupId,
+                  owner: ownerRequest?.creator,
+                }
+              );
+              
+              if (!updateGroupOwner.success) {
+                throw new Error(
+                  `Failed to create a group: ${groupsCreate.message}`
+                );
+              }
+              return updateGroupOwner;
+            },
+          },
+        ]);
+
+        const transactionsResult = Promise.resolve(transaction.exec()).catch(
+          (err) => {
+            throw new Error(
+              `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(
+                err.undoInfo.errorInfo.map((error) => error.id)
+              )}`
+            );
+          }
+        );
+
+        const { isSuccess, actionsInfo } = await transactionsResult;
+
+        if (isSuccess) {
+          return actionsInfo.responses.updateGroupOwner;
+        }
+
+        throw new Error(actionsInfo.errorInfo.error.message);
+
         try {
           const ownerRequest = await this.adapter.updateById(ctx.params.id, {
             $set: {
-              status: 'Approved',
+              status: "Approved",
             },
           });
 
-          return await this.broker.call('ad.updateGroupOwner', {
+          return await this.broker.call("ad.updateGroupOwner", {
             groupId: ownerRequest?.groupId,
             owner: ownerRequest?.creator,
           });
         } catch (err) {
           console.error(err);
-          throw new Error('Failed to approve a request');
+          throw new Error("Failed to approve a request");
         }
       },
     },
@@ -102,19 +218,19 @@ module.exports = {
      */
     deny: {
       rest: {
-        method: 'PUT',
-        path: '/request/deny/:id',
+        method: "PUT",
+        path: "/request/deny/:id",
       },
       async handler(ctx) {
         try {
           return await this.adapter.updateById(ctx.params.id, {
             $set: {
-              status: 'Denied',
+              status: "Denied",
             },
           });
         } catch (err) {
           console.error(err);
-          throw new Error('Failed to deny a request');
+          throw new Error("Failed to deny a request");
         }
       },
     },
@@ -126,22 +242,22 @@ module.exports = {
      */
     requestsByCreator: {
       rest: {
-        method: 'GET',
-        path: '/requests/creator',
+        method: "GET",
+        path: "/requests/creator",
       },
       async handler(ctx) {
-        console.log(ctx.meta.user.id, 'userID');
-        console.log(ctx.meta.user, 'user');
-        console.log(ctx.meta, 'meta');
+        console.log(ctx.meta.user.id, "userID");
+        console.log(ctx.meta.user, "user");
+        console.log(ctx.meta, "meta");
         try {
-          console.log(ctx.meta.user.id, 'userID');
+          console.log(ctx.meta.user.id, "userID");
           const res = await this.adapter.find({
             query: { creator: ctx.meta.user.id },
           });
-          console.log(res, 'response');
+          console.log(res, "response");
           return { requests: res };
         } catch (err) {
-          console.error(err, 'error');
+          console.error(err, "error");
           throw new Error("Failed to get creator's requests");
         }
       },
@@ -154,15 +270,15 @@ module.exports = {
      */
     requestsByApprover: {
       rest: {
-        method: 'GET',
-        path: '/requests/approver',
+        method: "GET",
+        path: "/requests/approver",
       },
       async handler(ctx) {
         try {
           const res = await this.adapter.find({
             query: {
               approver: ctx.meta.user.id,
-              status: 'Pending',
+              status: "Pending",
             },
           });
 
