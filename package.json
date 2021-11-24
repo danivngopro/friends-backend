@@ -34,7 +34,8 @@
     "moleculer-db-adapter-mongo": "^0.4.7",
     "moleculer-web": "^0.9.1",
     "nats": "^1.4.12",
-    "node-cache": "^5.1.2"
+    "node-cache": "^5.1.2",
+    "pipe-transaction": "^1.1.1"
   },
   "engines": {
     "node": ">= 10.x.x"

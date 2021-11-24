@@ -1,5 +1,7 @@
 'use strict';
 
+const { Transaction } = require('pipe-transaction');
+
 const DbMixin = require('../mixins/db.mixin');
 const CreateRequest = require('../models/create/CreateRequest');
 const { validations, schemas } = require('../validation');
@@ -13,7 +15,16 @@ module.exports = {
   /**
    * Service settings
    */
-  settings: {},
+  settings: {
+    autoApproveRanks: {
+			"ראל": 1,
+			"אלף": 2,
+			"תאל": 3,
+			"אלם": 4,
+			"סאל": 5,
+			"רסן": 6,
+		},
+  },
 
   /**
    * Mixins
@@ -55,7 +66,6 @@ module.exports = {
 
         const request = ctx.body;
         request.createdAt = new Date();
-        request.status = 'Pending';
         try {
           await schemas.createGroup.validateAsync(ctx.body.group);
 
@@ -64,8 +74,18 @@ module.exports = {
           }
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
 
+          if (Object.keys(this.settings.autoApproveRanks).includes(ctx.meta.user.rank.replace('"', ''))) {
+            request.status = 'Approved';
+            const res = await this.adapter.insert(ctx.body);
+            this.logger.info(res);
+            ctx.emit("mail.create", request);
+            return await this.broker.call('ad.groupsCreate', ctx.body.group);
+          }
+          request.status = 'Pending';
           const res = await this.adapter.insert(ctx.body);
-          ctx.emit('mail.create', request);
+          this.logger.info(res);
+          
+          ctx.emit("mail.create", request);
           return res;
         } catch (err) {
           ctx.meta.$statusCode =
@@ -90,18 +110,68 @@ module.exports = {
         path: '/request/approve/:id',
       },
       async handler(ctx) {
-        try {
-          const newGroup = await this.adapter.updateById(ctx.params.id, {
-            $set: {
-              status: 'Approved',
+        const transaction = new Transaction({});
+        transaction.appendArray([
+          {
+            id: 'setApproved',
+            action: async () => {
+              const newGroup = await this.adapter.updateById(ctx.params.id, {
+                $set: {
+                  status: 'Approved',
+                },
+              });
+              if (!newGroup) {
+                throw new Error(
+                  `Failed to update a group. Probably the id: '${ctx.params.id}' is wrong`
+                );
+              }
+              return newGroup;
             },
-          });
 
-          return await this.broker.call('ad.groupsCreate', newGroup);
-        } catch (err) {
-          console.error(err);
-          throw new Error('Failed to approve a request');
+            undo: () => {
+              this.adapter.updateById(ctx.params.id, {
+                $set: {
+                  status: 'Pending',
+                },
+              });
+            },
+          },
+          {
+            id: 'groupsCreate',
+            action: async (transactionsInfo) => {
+              const newGroup =
+                transactionsInfo.previousResponses['setApproved'];
+              const { createdAt, ...newGroupWithOutCreatedAt } = newGroup;
+              const groupsCreate = await this.broker.call(
+                'ad.groupsCreate',
+                newGroupWithOutCreatedAt.group
+              );
+              if (!groupsCreate.success) {
+                throw new Error(
+                  `Failed to create a group: ${groupsCreate.message}`
+                );
+              }
+              return groupsCreate;
+            },
+          },
+        ]);
+
+        const transactionsResult = Promise.resolve(transaction.exec()).catch(
+          (err) => {
+            throw new Error(
+              `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(err.undoInfo.errorInfo.map((error)=>error.id))}`
+            );
+          }
+        );
+
+        const { isSuccess, actionsInfo } = await transactionsResult;
+
+        if (isSuccess) {
+          return actionsInfo.responses.groupsCreate;
+
         }
+
+        throw new Error(actionsInfo.errorInfo.error.message);
       },
     },
 
