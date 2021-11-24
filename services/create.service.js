@@ -69,6 +69,20 @@ module.exports = {
         try {
           await schemas.createGroup.validateAsync(ctx.body.group);
 
+          const { fullName } = await this.broker.call('users.getByKartoffelId', { params: request.approver });
+          let isApproverValid;
+
+          if(request.group.type === 'distribution'){
+            isApproverValid = await this.broker.call('users.searchApproverDistribution', { partialName: fullName });
+          }
+          else{
+            isApproverValid = await this.broker.call('users.searchApproverSecurity', { partialName: fullName });
+          }
+
+          if(!isApproverValid.length){
+            throw new Error("The approver is supposed to be in the user's hierarchy and a rasan and up");
+          }
+
           if (!ctx.body.group.members.includes(ctx.meta.user.id)) {
             ctx.body.group.members.push(ctx.meta.user.id);
           }

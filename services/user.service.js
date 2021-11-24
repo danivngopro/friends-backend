@@ -121,7 +121,7 @@ module.exports = {
 				partialName: "string",
 			},
 			async handler(ctx) {
-				this.searchApprover({...ctx, isSecurity: true});
+				return this.searchApprover({...ctx, isSecurity: true});
 			},
         },
 
@@ -138,7 +138,7 @@ module.exports = {
 				partialName: "string",
 			},
 			async handler(ctx) {
-				this.searchApprover({...ctx, isSecurity: false});
+				return this.searchApprover({...ctx, isSecurity: false});
 			},
         },
 			
