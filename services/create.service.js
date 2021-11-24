@@ -74,19 +74,71 @@ module.exports = {
           }
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
 
-          if (Object.keys(this.settings.autoApproveRanks).includes(ctx.meta.user.rank.replace('"', ''))) {
-            request.status = 'Approved';
+          if (
+            !Object.keys(this.settings.autoApproveRanks).includes(
+              ctx.meta.user.rank.replace('"', '')
+            )
+          ) {
+            request.status = 'Pending';
             const res = await this.adapter.insert(ctx.body);
             this.logger.info(res);
-            ctx.emit("mail.create", request);
-            return await this.broker.call('ad.groupsCreate', ctx.body.group);
+
+            ctx.emit('mail.create', request);
+            return res;
           }
-          request.status = 'Pending';
-          const res = await this.adapter.insert(ctx.body);
-          this.logger.info(res);
-          
-          ctx.emit("mail.create", request);
-          return res;
+          const transaction = new Transaction({});
+          transaction.appendArray([
+            {
+              id: 'insert',
+              action: async () => {
+                request.status = 'Approved';
+                const newGroup = await this.adapter.insert(request);
+                if (!newGroup) {
+                  throw new Error(
+                    `Failed to create the group ${JSON.stringify(ctx.body)}`
+                  );
+                }
+                this.logger.info(newGroup);
+                ctx.emit('mail.create', request);
+                return newGroup;
+              },
+
+              undo: () => this.adapter.removeById(ctx.params.id),
+            },
+            {
+              id: 'groupsCreate',
+              action: async () => {
+                const groupsCreate = await this.broker.call(
+                  'ad.groupsCreate',
+                  ctx.body.group
+                );
+                if (!groupsCreate.success) {
+                  throw new Error(
+                    `Failed to create a group: ${groupsCreate.message}`
+                  );
+                }
+                return groupsCreate;
+              },
+            },
+          ]);
+
+          const transactionsResult = Promise.resolve(transaction.exec()).catch(
+            (err) => {
+              throw new Error(
+                `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(
+                  err.undoInfo.errorInfo.map((error) => error.id)
+                )}`
+              );
+            }
+          );
+
+          const { isSuccess, actionsInfo } = await transactionsResult;
+
+          if (isSuccess) {
+            return actionsInfo.responses.groupsCreate;
+          }
+
+          throw new Error(actionsInfo.errorInfo.error.message);
         } catch (err) {
           ctx.meta.$statusCode =
             err.name === 'ValidationError' ? 400 : err.status || 500;
@@ -159,7 +211,9 @@ module.exports = {
         const transactionsResult = Promise.resolve(transaction.exec()).catch(
           (err) => {
             throw new Error(
-              `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(err.undoInfo.errorInfo.map((error)=>error.id))}`
+              `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(
+                err.undoInfo.errorInfo.map((error) => error.id)
+              )}`
             );
           }
         );
@@ -168,7 +222,6 @@ module.exports = {
 
         if (isSuccess) {
           return actionsInfo.responses.groupsCreate;
-
         }
 
         throw new Error(actionsInfo.errorInfo.error.message);

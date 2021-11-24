@@ -1,4 +1,5 @@
 'use strict';
+const { Transaction } = require('pipe-transaction');
 
 const DbMixin = require('../mixins/db.mixin');
 const OwnerRequest = require('../models/owner/OwnerRequest');
@@ -49,7 +50,7 @@ module.exports = {
         ctx.body ?? (ctx.body = ctx.params);
         validations.isRequesterAndCreatorTheSame(
           ctx.meta.user.id,
-          ctx.body.approver
+          ctx.body.creator
         );
 
         const request = ctx.body;
@@ -77,21 +78,72 @@ module.exports = {
         path: '/request/approve/:id',
       },
       async handler(ctx) {
-        try {
-          const ownerRequest = await this.adapter.updateById(ctx.params.id, {
-            $set: {
-              status: 'Approved',
+        const transaction = new Transaction({});
+        transaction.appendArray([
+          {
+            id: 'setApproved',
+            action: async () => {
+              const newGroup = await this.adapter.updateById(ctx.params.id, {
+                $set: {
+                  status: 'Approved',
+                },
+              });
+              if (!newGroup) {
+                throw new Error(
+                  `Failed to update a group. Probably the id: '${ctx.params.id}' is wrong`
+                );
+              }
+              return newGroup;
             },
-          });
 
-          return await this.broker.call('ad.updateGroupOwner', {
-            groupId: ownerRequest?.groupId,
-            owner: ownerRequest?.creator,
-          });
-        } catch (err) {
-          console.error(err);
-          throw new Error('Failed to approve a request');
+            undo: () =>
+              this.adapter.updateById(ctx.params.id, {
+                $set: {
+                  status: 'Pending',
+                },
+              }),
+          },
+          {
+            id: 'updateGroupOwner',
+            action: async (transactionsInfo) => {
+              const ownerRequest =
+                transactionsInfo.previousResponses['setApproved'];
+
+              const updateGroupOwner = await this.broker.call(
+                'ad.updateGroupOwner',
+                {
+                  groupId: ownerRequest?.groupId,
+                  owner: ownerRequest?.creator,
+                }
+              );
+
+              if (!updateGroupOwner.success) {
+                throw new Error(
+                  `Failed to create a group: ${updateGroupOwner.message}`
+                );
+              }
+              return updateGroupOwner;
+            },
+          },
+        ]);
+
+        const transactionsResult = Promise.resolve(transaction.exec()).catch(
+          (err) => {
+            throw new Error(
+              `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(
+                err.undoInfo.errorInfo.map((error) => error.id)
+              )}`
+            );
+          }
+        );
+
+        const { isSuccess, actionsInfo } = await transactionsResult;
+
+        if (isSuccess) {
+          return actionsInfo.responses.updateGroupOwner;
         }
+
+        throw new Error(actionsInfo.errorInfo.error.message);
       },
     },
 
@@ -130,18 +182,12 @@ module.exports = {
         path: '/requests/creator',
       },
       async handler(ctx) {
-        console.log(ctx.meta.user.id, 'userID');
-        console.log(ctx.meta.user, 'user');
-        console.log(ctx.meta, 'meta');
         try {
-          console.log(ctx.meta.user.id, 'userID');
           const res = await this.adapter.find({
             query: { creator: ctx.meta.user.id },
           });
-          console.log(res, 'response');
           return { requests: res };
         } catch (err) {
-          console.error(err, 'error');
           throw new Error("Failed to get creator's requests");
         }
       },
