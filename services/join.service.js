@@ -1,4 +1,5 @@
 'use strict';
+const { Transaction } = require('pipe-transaction');
 
 const DbMixin = require('../mixins/db.mixin');
 const JoinRequest = require('../models/join/JoinRequest');
@@ -78,21 +79,66 @@ module.exports = {
       },
       params: { id: { type: 'string' } },
       async handler(ctx) {
-        try {
-          const request = await this.adapter.updateById(ctx.params.id, {
-            $set: {
-              status: 'Approved',
+        const transaction = new Transaction({});
+        transaction.appendArray([
+          {
+            id: 'setApproved',
+            action: async () => {
+              const newGroup = await this.adapter.updateById(ctx.params.id, {
+                $set: {
+                  status: 'Approved',
+                },
+              });
+              if (!newGroup) {
+                throw new Error(
+                  `Failed to update a group. Probably the id: '${ctx.params.id}' is wrong`
+                );
+              }
+              return newGroup;
             },
-          });
 
-          return await this.broker.call('ad.groupsAdd', {
-            groupId: request?.groupId,
-            users: [request?.creator],
-          });
-        } catch (err) {
-          console.error(err);
-          throw new Error('Failed to approve a request');
+            undo: () =>
+              this.adapter.updateById(ctx.params.id, {
+                $set: {
+                  status: 'Pending',
+                },
+              }),
+          },
+          {
+            id: 'groupsAdd',
+            action: async (transactionsInfo) => {
+              const request = transactionsInfo.previousResponses['setApproved'];
+              const groupsAdd = await this.broker.call('ad.groupsAdd', {
+                groupId: request?.groupId,
+                users: [request?.creator],
+              });
+              if (!groupsAdd.success) {
+                throw new Error(
+                  `Failed to create a group: ${groupsAdd.message}`
+                );
+              }
+              return groupsAdd;
+            },
+          },
+        ]);
+
+        const transactionsResult = Promise.resolve(transaction.exec()).catch(
+          (err) => {
+            throw new Error(
+              `Error: Transaction failed, one or more of the undo functions failed: ${JSON.stringify(
+                err.undoInfo.errorInfo.map((error) => error.id)
+              )}`
+            );
+          }
+        );
+
+        const { isSuccess, actionsInfo } = await transactionsResult;
+
+        if (isSuccess) {
+          return actionsInfo.responses.groupsAdd;
         }
+
+        throw new Error(actionsInfo.errorInfo.error.message);
       },
     },
 
@@ -132,19 +178,13 @@ module.exports = {
         path: '/requests/creator',
       },
       async handler(ctx) {
-        console.log(ctx.meta.user.id, 'userID');
-        console.log(ctx.meta.user, 'user');
-        console.log(ctx.meta, 'meta');
         try {
-          console.log(ctx.meta.user.id, 'userID');
           const res = await this.adapter.find({
-            query: { creator: ctx.meta.user.id,
-            status: 'Pending' },
+            query: { creator: ctx.meta.user.id, status: 'Pending' },
           });
-          console.log(res, 'response');
           return { requests: res };
         } catch (err) {
-          console.error(err, 'error');
+          this.logger.error(err, 'error');
           throw new Error("Failed to get creator's requests");
         }
       },
