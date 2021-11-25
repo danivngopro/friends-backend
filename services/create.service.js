@@ -79,12 +79,28 @@ module.exports = {
               ctx.meta.user.rank.replace('"', '')
             )
           ) {
-            request.status = 'Pending';
-            const res = await this.adapter.insert(ctx.body);
-            this.logger.info(res);
+              const { fullName } = await this.broker.call('users.getByKartoffelId', { params: request.approver });
+              let isApproverValid, minimumRank;
 
-            ctx.emit('mail.create', request);
-            return res;
+              if(request.group.type === 'distribution'){
+                isApproverValid = !!(await this.broker.call('users.searchApproverDistribution', { partialName: fullName })).length;
+                minimumRank = "רסן";
+              }
+              else{
+                isApproverValid = !!(await this.broker.call('users.searchApproverSecurity', { partialName: fullName })).length;
+                minimumRank = "סאל";
+              }
+
+              if(!isApproverValid){
+                throw new Error(`The approver is supposed to be in the user's hierarchy and ${minimumRank} and up`);
+              }
+
+              request.status = 'Pending';
+              const res = await this.adapter.insert(ctx.body);
+              this.logger.info(res);
+
+              ctx.emit("mail.create", request);
+              return res;
           }
           const transaction = new Transaction({});
           transaction.appendArray([
@@ -137,7 +153,6 @@ module.exports = {
           if (isSuccess) {
             return actionsInfo.responses.groupsCreate;
           }
-
           throw new Error(actionsInfo.errorInfo.error.message);
         } catch (err) {
           ctx.meta.$statusCode =
