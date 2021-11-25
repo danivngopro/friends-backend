@@ -69,20 +69,6 @@ module.exports = {
         try {
           await schemas.createGroup.validateAsync(ctx.body.group);
 
-          const { fullName } = await this.broker.call('users.getByKartoffelId', { params: request.approver });
-          let isApproverValid;
-
-          if(request.group.type === 'distribution'){
-            isApproverValid = await this.broker.call('users.searchApproverDistribution', { partialName: fullName });
-          }
-          else{
-            isApproverValid = await this.broker.call('users.searchApproverSecurity', { partialName: fullName });
-          }
-
-          if(!isApproverValid.length){
-            throw new Error("The approver is supposed to be in the user's hierarchy and a rasan and up");
-          }
-
           if (!ctx.body.group.members.includes(ctx.meta.user.id)) {
             ctx.body.group.members.push(ctx.meta.user.id);
           }
@@ -95,6 +81,23 @@ module.exports = {
             ctx.emit("mail.create", request);
             return await this.broker.call('ad.groupsCreate', ctx.body.group);
           }
+
+          const { fullName } = await this.broker.call('users.getByKartoffelId', { params: request.approver });
+          let isApproverValid, minimumRank;
+
+          if(request.group.type === 'distribution'){
+            isApproverValid = !!(await this.broker.call('users.searchApproverDistribution', { partialName: fullName })).length;
+            minimumRank = "רסן";
+          }
+          else{
+            isApproverValid = !!(await this.broker.call('users.searchApproverSecurity', { partialName: fullName })).length;
+            minimumRank = "סאל";
+          }
+
+          if(!isApproverValid){
+            throw new Error(`The approver is supposed to be in the user's hierarchy and ${minimumRank} and up`);
+          }
+
           request.status = 'Pending';
           const res = await this.adapter.insert(ctx.body);
           this.logger.info(res);

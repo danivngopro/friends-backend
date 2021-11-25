@@ -184,7 +184,6 @@ module.exports = {
 		async searchApprover(ctx) {
 			try {
 				const { params, meta, isSecurity } = ctx;
-				console.time("searchApprover");
 				let hierarchyFilter;
 				if (this.settings.hierarchyFilter) {
 					const userHierarchy = meta.user.hierarchy;
@@ -194,7 +193,6 @@ module.exports = {
 				}
 				const users = await this.kartoffelSearchHandler(params.partialName, hierarchyFilter, isSecurity);
 				this.logger.info(users);
-				console.timeEnd("searchApprover");
 				return users || [];
 			} catch (err) {
 				ctx.meta.$statusCode = err.name === 'ValidationError' ? 400 : err.status || 500;
@@ -241,9 +239,9 @@ module.exports = {
 			try {
 				console.log("kartoffelSearchHandler");
 				const sortedRanks = Object.keys(this.settings.sortingRanks).reverse();
-				const approveStartIndex = isSecurity ? sortedRanks.indexOf("סאל") : sortedRanks.indexOf("רסן");
+				const sortedRanksByType = isSecurity ? sortedRanks.slice(sortedRanks.indexOf("סאל")) : sortedRanks.slice(sortedRanks.indexOf("רסן")) ;
 				const responses = await Promise.allSettled(
-					sortedRanks.slice(approveStartIndex).map(async(rank) => {
+					sortedRanksByType.map(async(rank) => {
 						return (await axios.get(`${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.searchBase}`, { params: {
 							fullName: partialName,
 							rank,
@@ -257,7 +255,8 @@ module.exports = {
 				responses.map((currentResponse) => {
 					if (currentResponse.status === 'fulfilled') {
 						for (const currUser of currentResponse.value) {
-							if (hierarchyArray.every((value, index) => currUser.hierarchy[index] === value)) {
+							const isUserInHierarchy =hierarchyArray.every((value, index) => currUser.hierarchy[index] === value);
+							if (isUserInHierarchy) {
 								foundUsers.push(currentResponse.value);
 							  }
 						}
