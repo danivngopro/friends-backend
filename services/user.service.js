@@ -240,9 +240,10 @@ module.exports = {
 		async kartoffelSearchHandler(partialName, hierarchyArray, isSecurity) {
 			try {
 				console.log("kartoffelSearchHandler");
-				const approveStartIndex = isSecurity ? this.settings.approvedRanks.length - this.settings.sortingRanks["סאל"] : 0;
+				const sortedRanks = Object.keys(this.settings.sortingRanks).reverse();
+				const approveStartIndex = isSecurity ? sortedRanks.indexOf("סאל") : sortedRanks.indexOf("רסן");
 				const responses = await Promise.allSettled(
-					this.settings.approvedRanks.slice(approveStartIndex).map(async(rank) => {
+					sortedRanks.slice(approveStartIndex).map(async(rank) => {
 						return (await axios.get(`${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.searchBase}`, { params: {
 							fullName: partialName,
 							rank,
