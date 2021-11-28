@@ -1,4 +1,5 @@
 'use strict';
+const AdNockManager = require('./utils/nocks');
 
 /**
  * Moleculer ServiceBroker configuration file
@@ -196,7 +197,12 @@ module.exports = {
   replCommands: null,
 
   // Called after broker created.
-  created(broker) {},
+  created(broker) {
+    if (process.env.USE_NOCK === 'true') {
+      this.logger.info("AD API mock created");
+      AdNockManager.setNocks();
+    }
+  },
 
   // Called after broker started.
   async started(broker) {},

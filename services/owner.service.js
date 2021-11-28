@@ -109,13 +109,13 @@ module.exports = {
               const ownerRequest =
                 transactionsInfo.previousResponses['setApproved'];
 
-              const updateGroupOwner = await this.broker.call(
+              const updateGroupOwner = (await this.broker.call(
                 'ad.updateGroupOwner',
                 {
                   groupId: ownerRequest?.groupId,
                   owner: ownerRequest?.creator,
                 }
-              );
+              )).data;
 
               if (!updateGroupOwner.success) {
                 throw new Error(
