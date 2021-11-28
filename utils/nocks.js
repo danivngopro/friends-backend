@@ -5,41 +5,55 @@ const { ad } = require('../config');
 module.exports = class AdNockManager {
   static setNocks() {
     const url = ad.AD_SERVICE_URL;
-
     const scope = nock(url).persist();
 
     // Post requests
-    scope.post('/Group').reply(200, 'good');
-
+    scope.post('/Group').reply(200, { success: true, message: 'success' });
+    
     // Get requests
+    // * Keep the order of the routes
     scope
       .get('/User')
-      // .query((query) => !!query.user)
-      .reply(200, 'good');
-    //oiuhl
-    scope.get('/User/[a-zA-Z0-9-]*/g/groups').reply(200, 'good');
+      .query(() => true)
+      .reply(200, { success: true, message: 'success' });
+    scope
+      .get(/\/User\/[a-zA-Z\-]*\/groups/g)
+      .reply(200, { success: true, message: 'success' });
     scope
       .get('/Group/Distribution')
-      // .query({
-      //   group: ctx.params.partialName,
-      // })
-      .reply(200, 'good');
+      .query(
+        () => true
+      )
+      .reply(200, { success: true, message: 'success' });
     scope
       .get('/Group/Security')
-      // .query({
-      //   group: ctx.params.partialName,
-      // })
-      .reply(200, 'good');
-    scope.get('/Group/User/[a-zA-Z0-9-]*/g').reply(200, 'good');
-    scope.get('/Group/[a-zA-Z0-9-]*/g').reply(200, 'good');
+      .query(
+        () => true
+      )
+      .reply(200, { success: true, message: 'success' });
+
+    scope
+      .get(/\/Group\/User\/[a-zA-Z\-]*/g)
+      .reply(200, { success: true, message: 'success' });
+
+    scope
+      .get(/\/Group\/[a-zA-Z\-]*/g)
+      .reply(200, { success: false, message: 'success', members: [] });
 
     // Put requests
-    scope.put('/Group/users'
-    // , body
-    ).reply(200, 'good');
-    scope.put('/Group/user'
-    // , body
-    ).reply(200, 'good');
+    scope
+      .put(
+        '/Group/users'
+        // , body
+      )
+      .reply(200, { success: true, message: 'success' });
+    scope
+      .put(
+        '/Group/user'
+        // , body
+      )
+      .reply(200, { success: true, message: 'success' });
+
     scope
       .put(
         '/Group/owner'
@@ -52,10 +66,11 @@ module.exports = class AdNockManager {
         //   },
         // }
       )
-      .reply(200, 'good');
+      .reply(200, { success: true, message: 'success' });
+
     scope
       .put(
-        '/Group/[a-zA-Z0-9-]*/g'
+        '/Group/displayName'
         // , {
         //   id: ctx.params.groupId,
         //   type: ad.types[field],
@@ -65,7 +80,21 @@ module.exports = class AdNockManager {
         //   },
         // }
       )
-      .reply(200, 'good');
+      .reply(200, { success: true, message: 'success' });
+
+      scope
+      .put(
+        '/Group/name'
+        // , {
+        //   id: ctx.params.groupId,
+        //   type: ad.types[field],
+        //   data: {
+        //     groupId: ctx.params.groupId,
+        //     value,
+        //   },
+        // }
+      )
+      .reply(200, { success: true, message: 'success' });
 
     // Delete requests
     scope
@@ -81,18 +110,18 @@ module.exports = class AdNockManager {
         //   },
         // }
       )
-      .reply(200, 'good');
+      .reply(200, { success: true, message: 'success' });
     scope
       .delete(
         '/Group/users'
         // , body
       )
-      .reply(200, 'good');
+      .reply(200, { success: true, message: 'success' });
     scope
       .delete(
         '/Group/user'
         // , body
       )
-      .reply(200, 'good');
+      .reply(200, { success: true, message: 'success' });
   }
 };

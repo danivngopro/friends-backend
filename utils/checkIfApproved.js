@@ -16,7 +16,7 @@ const checkIfApproved = async (broker, addedMembersCount, groupId, event = 'CREA
     let groupCount = addedMembersCount;
 
     if (event === 'UPDATE') {
-        const currentGroup = await axios.get(`${ad.AD_SERVICE_URL}/Group/${groupId}`);
+        const currentGroup = (await axios.get(`${ad.AD_SERVICE_URL}/Group/${groupId}`)).data;
         groupCount += currentGroup.members.length;
     }
 
