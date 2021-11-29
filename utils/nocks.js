@@ -5,6 +5,7 @@ const { ad } = require('../config');
 module.exports = class AdNockManager {
   static setNocks() {
     const url = ad.AD_SERVICE_URL;
+    console.log("nockurl",url);
     const scope = nock(url).persist();
 
     // Post requests
@@ -17,7 +18,7 @@ module.exports = class AdNockManager {
       .query(() => true)
       .reply(200, { success: true, message: 'success' });
     scope
-      .get(/\/User\/[a-zA-Z\-]*\/groups/g)
+      .get(/\/User\/[a-zA-Z0-9\-]*\/groups/g)
       .reply(200, { success: true, message: 'success' });
     scope
       .get('/Group/Distribution')
@@ -33,11 +34,11 @@ module.exports = class AdNockManager {
       .reply(200, { success: true, message: 'success' });
 
     scope
-      .get(/\/Group\/User\/[a-zA-Z\-]*/g)
+      .get(/\/Group\/User\/[a-zA-Z0-9\-]*/g)
       .reply(200, { success: true, message: 'success' });
 
     scope
-      .get(/\/Group\/[a-zA-Z\-]*/g)
+      .get(/\/Group\/[a-zA-Z0-9\-]*/g)
       .reply(200, { success: false, message: 'success', members: [] });
 
     // Put requests

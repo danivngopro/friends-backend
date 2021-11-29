@@ -79,13 +79,17 @@ module.exports = {
         path: '/kartoffel/:id',
       },
       async handler(ctx) {
-        const res = await axios.get(
-          `${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.personBase}/${ctx.params.id}`
-        );
-        if (!res) {
-          throw new Error('Could not get from kartoffel');
+        try {
+          const res = await axios.get(
+            `${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.personBase}/${ctx.params.id}`
+          );
+          return res.data;
+        } catch(err) {
+			this.logger.error(err, "error")
+          if (!res) {
+            throw new Error('Could not get from kartoffel');
+          }
         }
-        return res.data;
       },
     },
 
