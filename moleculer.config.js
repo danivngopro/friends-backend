@@ -199,7 +199,7 @@ module.exports = {
   // Called after broker created.
   created(broker) {
     if (process.env.USE_NOCK === 'true') {
-      this.logger.info("AD API mock created");
+      broker.logger.info("AD API mock created");
       AdNockManager.setNocks();
     }
   },
