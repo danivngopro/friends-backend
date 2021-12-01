@@ -183,9 +183,11 @@ module.exports = {
       },
       async handler(ctx) {
         try {
+          console.log("ctx.meta.user.id  ",ctx.meta.user.id );
           const res = await this.adapter.find({
             query: { creator: ctx.meta.user.id },
           });
+          console.log("owner ",res);
           return { requests: res };
         } catch (err) {
           throw new Error("Failed to get creator's requests");

@@ -37,6 +37,7 @@ module.exports = {
       סאל: 5,
       רסן: 6,
       rookie: 7,
+      mega: 8,
     },
     hierarchyFilter: process.env.HIERARCHY_FILTER !== 'false',
   },
@@ -79,16 +80,16 @@ module.exports = {
         path: '/kartoffel/:id',
       },
       async handler(ctx) {
+        console.log('ctx getByKartoffelId: ', ctx);
         try {
           const res = await axios.get(
-            `${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.personBase}/${ctx.params.id}`
+            `${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.personBase}${ctx.params.id}`
           );
+          console.log('res: ', res);
           return res.data;
-        } catch(err) {
-			this.logger.error(err, "error")
-          if (!res) {
-            throw new Error('Could not get from kartoffel');
-          }
+        } catch (err) {
+          this.logger.error(err, 'error');
+          throw new Error('Could not get from kartoffel: ', err);
         }
       },
     },
@@ -150,6 +151,7 @@ module.exports = {
         partialName: 'string',
       },
       async handler(ctx) {
+        console.log('im here');
         return this.searchApprover({ ...ctx, isSecurity: false });
       },
     },
@@ -193,6 +195,10 @@ module.exports = {
 
     async searchApprover(ctx) {
       try {
+        console.log(
+          'this.settings.hierarchyFilter: ',
+          this.settings.hierarchyFilter
+        );
         const { params, meta, isSecurity } = ctx;
         let hierarchyFilter;
         if (this.settings.hierarchyFilter) {
@@ -224,12 +230,14 @@ module.exports = {
 
     loadApprovedRanks() {
       // TODO: Enter all approved ranks (maybe do that from local file configured in env)
-      if (!process.env.PRODUCTION) {
+      if (process.env.PRODUCTION === 'false') {
+        console.log('production');
         this.settings.approvedRanks = ['mega', 'rookie'];
       }
       const approvedRanks = ['רסן', 'סאל', 'אלם', 'תאל', 'אלף', 'ראל'];
       this.settings.approvedRanks =
         this.settings.approvedRanks.concat(approvedRanks);
+      console.log('loadApprovedRanks', this.settings.approvedRanks);
     },
 
     async cacheApprovers() {
@@ -240,6 +248,10 @@ module.exports = {
     },
 
     async loadDefaultApprovers() {
+      console.log(
+        'this.settings.defaultApproverIds',
+        this.settings.defaultApproverIds
+      );
       const responses = await Promise.allSettled(
         this.settings.defaultApproverIds.map(async (kartoffelId) => {
           return (
@@ -250,7 +262,7 @@ module.exports = {
         })
       );
       let foundedUsers = [];
-
+      console.log('responses', responses);
       responses.map((currentResponse) => {
         if (currentResponse.status === 'fulfilled') {
           foundedUsers.push(currentResponse.value);
@@ -265,9 +277,15 @@ module.exports = {
       try {
         console.log('kartoffelSearchHandler');
         const sortedRanks = Object.keys(this.settings.sortingRanks).reverse();
-        const sortedRanksByType = isSecurity
-          ? sortedRanks.slice(sortedRanks.indexOf('סאל'))
-          : sortedRanks.slice(sortedRanks.indexOf('רסן'));
+        let sortedRanksByType;
+        if (process.env.PRODUCTION === 'false') {
+          sortedRanksByType = sortedRanks;
+        } else {
+          sortedRanksByType = isSecurity
+            ? sortedRanks.slice(sortedRanks.indexOf('סאל'))
+            : sortedRanks.slice(sortedRanks.indexOf('רסן'));
+        }
+        console.log('sortedRanksByType: ', sortedRanksByType);
         const responses = await Promise.allSettled(
           sortedRanksByType.map(async (rank) => {
             return (
@@ -284,7 +302,7 @@ module.exports = {
             )?.data;
           })
         );
-
+        console.log('responses: ', responses);
         let foundUsers = [];
 
         responses.map((currentResponse) => {

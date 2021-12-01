@@ -17,13 +17,13 @@ module.exports = {
    */
   settings: {
     autoApproveRanks: {
-			"ראל": 1,
-			"אלף": 2,
-			"תאל": 3,
-			"אלם": 4,
-			"סאל": 5,
-			"רסן": 6,
-		},
+      ראל: 1,
+      אלף: 2,
+      תאל: 3,
+      אלם: 4,
+      סאל: 5,
+      רסן: 6,
+    },
   },
 
   /**
@@ -57,6 +57,7 @@ module.exports = {
       },
       body: CreateRequest,
       async handler(ctx) {
+        console.log('ctx: ', ctx);
         ctx.body ?? (ctx.body = ctx.params);
         validations.isRequesterAndCreatorTheSame(
           ctx.meta.user.id,
@@ -79,28 +80,49 @@ module.exports = {
               ctx.meta.user.rank.replace('"', '')
             )
           ) {
-              const { fullName } = await this.broker.call('users.getByKartoffelId', { params: request.approver });
-              let isApproverValid, minimumRank;
+            console.log('if');
+            const { fullName } = await this.broker.call(
+              'users.getByKartoffelId',
+              { id: request.approver }
+            );
+            let isApproverValid, minimumRank;
 
-              if(request.group.type === 'distribution'){
-                isApproverValid = !!(await this.broker.call('users.searchApproverDistribution', { partialName: fullName })).length;
-                minimumRank = "רסן";
-              }
-              else{
-                isApproverValid = !!(await this.broker.call('users.searchApproverSecurity', { partialName: fullName })).length;
-                minimumRank = "סאל";
-              }
+            if (request.group.type === 'distribution') {
+              console.log('if1');
+              isApproverValid = !!(
+                await this.broker.call('users.searchApproverDistribution', {
+                  partialName: fullName,
+                })
+              ).length;
+              minimumRank = 'רסן';
+              console.log('if2');
+            } else {
+              console.log('if3');
+              isApproverValid = !!(
+                await this.broker.call('users.searchApproverSecurity', {
+                  partialName: fullName,
+                })
+              ).length;
+              minimumRank = 'סאל';
+              console.log('if4');
+            }
 
-              if(!isApproverValid){
-                throw new Error(`The approver is supposed to be in the user's hierarchy and ${minimumRank} and up`);
-              }
+            if (!isApproverValid) {
+              console.log('if5');
+              throw new Error(
+                `The approver is supposed to be in the user's hierarchy and ${minimumRank} and up`
+              );
+            }
 
-              request.status = 'Pending';
-              const res = await this.adapter.insert(ctx.body);
-              this.logger.info(res);
-
-              ctx.emit("mail.create", request);
-              return res;
+            request.status = 'Pending';
+            console.log('if6');
+            const res = await this.adapter.insert(ctx.body);
+            console.log('if7');
+            this.logger.info(res);
+            console.log('if');
+            ctx.emit('mail.create', request);
+            console.log('if8');
+            return res;
           }
           const transaction = new Transaction({});
           transaction.appendArray([
@@ -115,7 +137,9 @@ module.exports = {
                   );
                 }
                 this.logger.info(newGroup);
+                console.log('beforemail', newGroup);
                 ctx.emit('mail.create', request);
+                console.log('aftermail', newGroup);
                 return newGroup;
               },
 
@@ -155,6 +179,7 @@ module.exports = {
           }
           throw new Error(actionsInfo.errorInfo.error.message);
         } catch (err) {
+          console.log("errrrrrrr!!!!",err)
           ctx.meta.$statusCode =
             err.name === 'ValidationError' ? 400 : err.status || 500;
           return {

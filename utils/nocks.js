@@ -5,32 +5,44 @@ const { ad } = require('../config');
 module.exports = class AdNockManager {
   static setNocks() {
     const url = ad.AD_SERVICE_URL;
-    console.log("nockurl",url);
     const scope = nock(url).persist();
 
     // Post requests
     scope.post('/Group').reply(200, { success: true, message: 'success' });
-    
+
     // Get requests
     // * Keep the order of the routes
     scope
       .get('/User')
       .query(() => true)
-      .reply(200, { success: true, message: 'success' });
-    scope
-      .get(/\/User\/[a-zA-Z0-9\-]*\/groups/g)
-      .reply(200, { success: true, message: 'success' });
+      .reply(200,  [{ "displayName": "beni", "sAMAccountName": "123" } ]);
+    scope.get(/\/User\/[a-zA-Z0-9\-]*\/groups/g).reply(200, [
+      {
+        displayName: '/gh',
+        classification: 'blue',
+        type: 'distribution',
+        hierarchy: '/gh',
+        members: ['5e5688324203fc40043591aa'],
+        owner: 't23458789',
+        name: 'beni1',
+      },
+      {
+        displayName: '/gh',
+        classification: 'blue',
+        type: 'security',
+        hierarchy: '/gh',
+        members: ['5e5688324203fc40043591aa'],
+        owner: 't23458789',
+        name: 'beni2',
+      },
+    ]);
     scope
       .get('/Group/Distribution')
-      .query(
-        () => true
-      )
+      .query(() => true)
       .reply(200, { success: true, message: 'success' });
     scope
       .get('/Group/Security')
-      .query(
-        () => true
-      )
+      .query(() => true)
       .reply(200, { success: true, message: 'success' });
 
     scope
@@ -39,6 +51,10 @@ module.exports = class AdNockManager {
 
     scope
       .get(/\/Group\/[a-zA-Z0-9\-]*/g)
+      .reply(200, { success: false, message: 'success', members: [] });
+
+      scope
+      .put(/\/Group\/[a-zA-Z0-9\-]*/g)
       .reply(200, { success: false, message: 'success', members: [] });
 
     // Put requests
@@ -83,7 +99,7 @@ module.exports = class AdNockManager {
       )
       .reply(200, { success: true, message: 'success' });
 
-      scope
+    scope
       .put(
         '/Group/name'
         // , {
