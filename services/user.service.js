@@ -16,12 +16,12 @@ module.exports = {
   /**
    * Settings
    */
-  settings: {
+   settings: {
     kartoffel: {
       proxyUrl:
-        process.env.OUTGOING_PROXY_URL ||
-        'http://outgoing-proxy-service:8010/kartoffel',
-      searchBase: '/api/persons/search?domainusers.datasource=nonExternals',
+        process.env.OUTGOING_PROXY_URL || 'http://outgoing-proxy-service:8010/kartoffel',
+        // inside '/api/persons/search?domainusers.datasource=aman'
+      searchBase:process.env.SEARCH_BASE || '/api/persons/search?domainusers.datasource=nonExternals',
 
       domainUserBase: '/api/persons/domainuser',
       personBase: '/api/persons/',
