@@ -39,7 +39,7 @@ module.exports = class AdNockManager {
     scope
       .get('/Group/Distribution')
       .query(() => true)
-      .reply(200, { success: true, message: 'success' });
+      .reply(200, [{firstName:'beni',lastName:'muller',hierarchy:['אמן','ספיר','יסודות']}]);
     scope
       .get('/Group/Security')
       .query(() => true)

@@ -312,7 +312,7 @@ module.exports = {
                 (value, index) => currUser.hierarchy[index] === value
               );
               if (isUserInHierarchy) {
-                foundUsers.push(currentResponse.value);
+                foundUsers.push(currUser);
               }
             }
           }
