@@ -23,8 +23,8 @@ module.exports = {
         // inside '/api/persons/search?domainusers.datasource=aman'
       searchBase:process.env.SEARCH_BASE || '/api/persons/search?domainusers.datasource=nonExternals',
 
-      domainUserBase: '/api/persons/domainuser',
-      personBase: '/api/persons/',
+      domainUserBase:process.env.DOMAIN_BASE_USER || '/api/persons/domainuser',
+      personBase: process.env.PERSON_BASE || '/api/persons',
       cacheTTL: process.env.CACHE_TTL || 7200000,
     },
     approvedRanks: [],
@@ -81,9 +81,13 @@ module.exports = {
       },
       async handler(ctx) {
         console.log('ctx getByKartoffelId: ', ctx);
+        let kartoffelId = ctx.params.id
+        if(typeof kartoffelId==='object'){
+          kartoffelId=kartoffelId.id
+        }
         try {
           const res = await axios.get(
-            `${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.personBase}${ctx.params.id}`
+            `${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.personBase}/${kartoffelId}`
           );
           console.log('res: ', res);
           return res.data;
