@@ -42,10 +42,16 @@ module.exports = {
                 this.broker.call('users.getByKartoffelId', { id: payload.creator }),
                 this.broker.call('ad.groupById', { groupId: payload.groupId }),
             ]);
-            const approverUser = await this.broker.call(
-                'users.getPersonByDomainUser',
-                { domainuser: payload.approver.sAMAccountName }
-              );
+            let approverUser;
+            if(payload.approver.sAMAccountName){
+                approverUser = await this.broker.call(
+                    'users.getPersonByDomainUser',
+                    { domainuser: payload.approver.sAMAccountName }
+                );
+            }
+            else{
+                approverUser = await this.broker.call('users.getByKartoffelId', { id: payload.approver });
+            }
             this.logger.info(approverUser);
 
             const mailObject = {
@@ -149,10 +155,16 @@ module.exports = {
 
         async "mail.owner"(payload) {
             const group = await this.broker.call('ad.groupById', { groupId: payload.groupId });
-            const approverUser = await this.broker.call(
-                'users.getPersonByDomainUser',
-                { domainuser: payload.approver.sAMAccountName }
-              );
+            let approverUser;
+            if(payload.approver.sAMAccountName){
+                approverUser = await this.broker.call(
+                    'users.getPersonByDomainUser',
+                    { domainuser: payload.approver.sAMAccountName }
+                );
+            }
+            else{
+                approverUser = await this.broker.call('users.getByKartoffelId', { id: payload.approver });
+            }
             this.logger.info(approverUser);
 
             const mailObject = {
