@@ -202,7 +202,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner.displayName}</p>
             <br />
-            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
+            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
             </div>`
         },
         joinConfirmHTML(creatorUser, approverUser, group, joinReason) {
@@ -217,7 +217,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;"><strong>מבקש: </strong>${approverUser.fullName}</p>
             <p style="font-size: 18px; text-align: right;"><strong>סיבה: </strong>${joinReason}</p>
             <br />
-            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לאישור או דחיית הבקשה לחץ כאן</a></strong></h2>
+            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/requests`}">לאישור או דחיית הבקשה לחץ כאן</a></strong></h2>
             </div>`
         },
         createHTML(creatorUser, approverUser, group) {
@@ -233,7 +233,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <p style="font-size: 18px; text-align: right;"><strong>מפקד מאשר: </strong>${approverUser.fullName}</p>
             <br />
-            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
+            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
             </div>`
         },
         createSuccessHTML(owner, group){
@@ -248,7 +248,7 @@ module.exports = {
 			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
             <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <br />
-            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
+            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
             </div>`
         },
         createConfirmHTML(approverUser, group) {
@@ -263,7 +263,7 @@ module.exports = {
 			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
             <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <br />
-            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לאישור או דחיית הבקשה לחץ כאן</a></strong></h2>
+            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/requests`}">לאישור או דחיית הבקשה לחץ כאן</a></strong></h2>
             </div>`
         },
         managementTransferHTML(approverUser, group) {
@@ -279,7 +279,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;"><strong>כמות חברים: </strong>${group.members.length}</p>
             <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
             <br />
-            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile/userID`}">לאישור או דחיית הבקשה לחץ כאן</a></strong></h2>
+            <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/requests`}">לאישור או דחיית הבקשה לחץ כאן</a></strong></h2>
             </div>`
         },
     },
