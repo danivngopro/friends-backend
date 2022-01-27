@@ -28,7 +28,7 @@ module.exports = {
       cacheTTL: process.env.CACHE_TTL || 7200000,
     },
     approvedRanks: [],
-    defaultApproverIds: [],
+    defaultApproverIds: process.env.DEFAULT_APPROVER_IDS || [],
     sortingRanks: {
       ראל: 1,
       אלף: 2,
@@ -260,7 +260,11 @@ module.exports = {
         this.settings.defaultApproverIds.map(async (kartoffelId) => {
           return (
             await axios.get(
-              `${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.searchBase}${kartoffelId}`
+              `${this.settings.kartoffel.proxyUrl}${this.settings.kartoffel.searchBase}`, {
+                params: {
+                  personalNumber: kartoffelId
+                }
+              }
             )
           )?.data;
         })
