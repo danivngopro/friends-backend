@@ -238,7 +238,7 @@ module.exports = {
                 'ad.groupsCreate',
                 newGroupWithOutCreatedAt.group
               );
-              if (!groupsCreate.success) {
+              if (!groupsCreate) {
                 throw new Error(
                   `Failed to create a group: ${groupsCreate.message}`
                 );
