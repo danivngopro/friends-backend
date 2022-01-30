@@ -238,7 +238,7 @@ module.exports = {
                 'ad.groupsCreate',
                 newGroupWithOutCreatedAt.group
               );
-              console.log('ad.groupsCreate res: ', groupsCreate);
+              console.log('ad.groupsCreate res: ', JSON.stringify(groupsCreate));
               if (!groupsCreate) {
                 throw new Error(
                   `Failed to create a group: ${groupsCreate.message}`
