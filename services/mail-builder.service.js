@@ -65,7 +65,7 @@ module.exports = {
                 from: this.settings.mailUserFrom,
                 to: [approverUser.mail],
                 title: "test",
-                html: this.joinConfirmHTML(creatorUser, approverUser, group, joinReason),
+                html: this.joinConfirmHTML(creatorUser, approverUser, group, payload.joinReason),
             };
 
             // send mail
