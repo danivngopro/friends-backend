@@ -199,7 +199,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;">בקשתך להצטרפות לקבוצה</p>
             <p style="font-size: 18px; text-align: right;">&nbsp;</p>
             <p style="font-size: 18px; text-align: right;"><strong>שם קבוצה: </strong>${group.name ? group.name : group.displayName}</p>
-            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
+            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type === 'distribution' ? 'תפוצת מייל' : 'קבוצת אבטחה'}</p>
             <p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner.displayName}</p>
             <br />
             <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
@@ -230,7 +230,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;">&nbsp;</p>
             <p style="font-size: 18px; text-align: right;"><strong>שם קבוצה: </strong>${group.groupName ? group.groupName : group.displayName}</p>
 			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
-            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
+            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type === 'distribution' ? 'תפוצת מייל' : 'קבוצת אבטחה'}</p>
             <p style="font-size: 18px; text-align: right;"><strong>מפקד מאשר: </strong>${approverUser.fullName}</p>
             <br />
             <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
@@ -246,7 +246,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;">&nbsp;</p>
             <p style="font-size: 18px; text-align: right;"><strong>שם קבוצה: </strong>${group.groupName ? group.groupName : group.displayName}</p>
 			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
-            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
+            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type === 'distribution' ? 'תפוצת מייל' : 'קבוצת אבטחה'}</p>
             <br />
             <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/profile`}">לצפייה בפרטי הבקשה המלאים לחץ כאן</a></strong></h2>
             </div>`
@@ -261,7 +261,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;">&nbsp;</p>
             <p style="font-size: 18px; text-align: right;"><strong>שם קבוצה: </strong>${group.groupName ? group.groupName : group.displayName}</p>
 			<p style="font-size: 18px; text-align: right;"><strong>מנהל: </strong>${group.owner}</p>
-            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
+            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type === 'distribution' ? 'תפוצת מייל' : 'קבוצת אבטחה'}</p>
             <br />
             <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/requests`}">לאישור או דחיית הבקשה לחץ כאן</a></strong></h2>
             </div>`
@@ -277,7 +277,7 @@ module.exports = {
             <p style="font-size: 18px; text-align: right;"><strong>שם קבוצה: </strong>${group.groupName ? group.groupName : group.displayName}</p>
             <p style="font-size: 18px; text-align: right;"><strong>מנהל נוכחי: </strong>${group.owner.displayName}</p>
             <p style="font-size: 18px; text-align: right;"><strong>כמות חברים: </strong>${group.members.length}</p>
-            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type}</p>
+            <p style="font-size: 18px; text-align: right;"><strong>סוג קבוצה: </strong>${group.type === 'distribution' ? 'תפוצת מייל' : 'קבוצת אבטחה'}</p>
             <br />
             <h2><strong><a href="${`${config.BASE_WEBSITE_URL}/requests`}">לאישור או דחיית הבקשה לחץ כאן</a></strong></h2>
             </div>`
