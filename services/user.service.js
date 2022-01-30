@@ -28,7 +28,7 @@ module.exports = {
       cacheTTL: process.env.CACHE_TTL || 7200000,
     },
     approvedRanks: [],
-    defaultApproverIds: JSON.parse(process.env.DEFAULT_APPROVER_IDS) || [],
+    defaultApproverIds: JSON.parse(process.env.DEFAULT_APPROVER_IDS || "[]"),
     sortingRanks: {
       ראל: 1,
       אלף: 2,
