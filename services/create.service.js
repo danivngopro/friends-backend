@@ -70,10 +70,11 @@ module.exports = {
         try {
           await schemas.createGroup.validateAsync(ctx.body.group);
 
-          if (!ctx.body.group.members.includes(ctx.meta.user.id)) {
-            ctx.body.group.members.push(ctx.meta.user.id);
-          }
           ctx.body.group.owner = ctx.meta.user.email.split('@')[0];
+
+          if (!ctx.body.group.members.includes(ctx.body.group.owner)) {
+            ctx.body.group.members.push(ctx.body.group.owner);
+          }
 
           if (
             !Object.keys(this.settings.autoApproveRanks).includes(
