@@ -473,8 +473,8 @@ module.exports = {
           }
 
           const res = await Promise.all(promises);
-          console.log(res);
-          
+          console.log('res of update groups', res);
+
           return {
             message: 'successfully updated all parameters',
             success: true,
