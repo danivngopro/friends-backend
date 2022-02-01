@@ -330,25 +330,24 @@ module.exports = {
           ctx.body ?? (ctx.body = ctx.params);
           await schemas.usersActionOnGroup.validateAsync(ctx.body);
 
-          let url;
           let body = {
             id: ctx.body.groupId,
             type: ad.types.remove,
             data: {
               groupId: ctx.body.groupId,
-              userId: undefined,
+              userId: ctx.body.users.join(';'),
             },
           };
 
-          if (ctx.body.users.length > 1) {
-            url = '/Group/users';
-            body.data['userId'] = ctx.body.users.join(';');
-          } else {
-            url = '/Group/user';
-            body.data['userId'] = ctx.body.users[0];
-          }
+          // if (ctx.body.users.length > 1) {
+          //   url = '/Group/users';
+          //   body.data['userId'] = ctx.body.users.join(';');
+          // } else {
+          //   url = '/Group/user';
+          //   body.data['userId'] = ctx.body.users[0];
+          // }
 
-          const res = await axios.delete(`${ad.AD_SERVICE_URL}${url}`, {
+          const res = await axios.delete(`${ad.AD_SERVICE_URL}/Group/user`, {
             data: body,
           });
 

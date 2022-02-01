@@ -13,7 +13,7 @@ const config = {
             remove: 'Remove',
             add: 'Add',
             delete: 'DeleteDistribution',
-            displayName: 'changeDisplayName',
+            displayName: 'ChangeDisplayName',
             name: 'ChangeSecurityName',
             owner: ''
         },
