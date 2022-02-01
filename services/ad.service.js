@@ -472,7 +472,9 @@ module.exports = {
             }
           }
 
-          await Promise.all(promises);
+          const res = await Promise.all(promises);
+          console.log(res);
+          
           return {
             message: 'successfully updated all parameters',
             success: true,
