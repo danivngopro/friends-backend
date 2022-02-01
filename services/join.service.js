@@ -108,9 +108,18 @@ module.exports = {
             id: 'groupsAdd',
             action: async (transactionsInfo) => {
               const request = transactionsInfo.previousResponses['setApproved'];
+              let requestCreator = {};
+
+              if (request?.creator[0] === 'T') {
+                requestCreator.sAMAccountName = request?.creator;
+              } else {
+                requestCreator = await this.broker.call('users.getByKartoffelId', { id: request?.creator });
+                requestCreator.sAMAccountName = requestCreator?.mail.split('@')[0].toUpperCase();
+              }
+
               const groupsAdd = await this.broker.call('ad.groupsAdd', {
                 groupId: request?.groupId,
-                users: [request?.creator],
+                users: [requestCreator.sAMAccountName],
               });
               if (!groupsAdd.success) {
                 throw new Error(

@@ -138,6 +138,10 @@ module.exports = {
       },
     },
     groupsAdd: {
+      rest: {
+        method: 'PUT',
+        path: '/group/users',
+      },
       body: {
         groupId: 'string',
         users: ['string'],
@@ -154,25 +158,24 @@ module.exports = {
             'UPDATE'
           );
 
-          let url;
           let body = {
             id: ctx.body.groupId,
             type: ad.types.add,
             data: {
               groupId: ctx.params.groupId,
-              userId: undefined,
+              userId: ctx.body.users.join(';'),
             },
           };
 
-          if (ctx.body.users.length > 1) {
-            url = '/Group/users';
-            body.data['userId'] = ctx.body.users.join(';');
-          } else {
-            url = '/Group/user';
-            body.data['userId'] = ctx.body.users[0];
-          }
+          // if (ctx.body.users.length > 1) {
+          //   url = '/Group/users';
+          //   body.data['userId'] = ctx.body.users.join(';');
+          // } else {
+          //   url = '/Group/user';
+          //   body.data['userId'] = ctx.body.users[0];
+          // }
 
-          const res = await axios.put(`${ad.AD_SERVICE_URL}${url}`, body);
+          const res = await axios.put(`${ad.AD_SERVICE_URL}/Group/user`, body);
           console.log('ad service join response: ', JSON.stringify(res.data));
 
           if (res.status !== 200)
@@ -405,6 +408,10 @@ module.exports = {
       },
     },
     updateGroupOwner: {
+      rest: {
+        method: 'PUT',
+        path: '/group/owner',
+      },
       body: {
         groupId: 'string',
         owner: 'string',
