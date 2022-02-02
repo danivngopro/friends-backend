@@ -143,6 +143,27 @@ module.exports = {
     },
 
     /**
+     * Is the user entering for the first time
+     */
+     isFirstEntrance: {
+      rest: {
+        method: 'GET',
+        path: '/isFirstEntrance',
+      },
+      async handler(ctx) {
+        const isUser = await this.adapter.find({
+          query: { personalNumber: ctx.meta.user.personalNumber },
+        });
+
+        if(!isUser.length){
+          this.adapter.insert(ctx.meta.user.personalNumber);
+          return false;
+        }
+        return true;
+      },
+    },
+
+    /**
      * Requests the Kartoffel to search a user
      * @param {String} partialName - partial name of the approver
      */

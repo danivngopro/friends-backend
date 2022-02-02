@@ -157,7 +157,14 @@ module.exports = {
                     const secret =
                         process.env.SECRET_KEY || "supersecret-secret"; // TODO: figure a better way to load env variables
                     const decoded = jwt.verify(jwtToken, secret);
-                    return decoded;
+                    const userFromDb = await this.adapter.find({
+                        query: { personalNumber: ctx.meta.user.personalNumber },
+                      });
+                    let isFirstEntrance = true;
+                    if(userFromDb.length){
+                        isFirstEntrance = false;
+                    }
+                    return {...decoded, isFirstEntrance};
                 } catch (err) {
                     this.logger.info("error in jwt.verify: ", err);
                 }
