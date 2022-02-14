@@ -71,12 +71,14 @@ module.exports = {
             // send mail
             axios.post(config.MAILER_SERVICE_URL, mailObject).then(res => {
                 this.logger.info('mail.join: Sent mail 1.');
+                console.log(1);
             }).catch(err => {
                 this.logger.error('Failed sending mail', err.message);
             })
 
             axios.post(config.MAILER_SERVICE_URL, mailConfirmObject).then(res => {
                 this.logger.info('mail.join: Sent mail 2.');
+                console.log(2);
             }).catch(err => {
                 this.logger.error('Failed sending mail', err.message);
             })
@@ -116,12 +118,14 @@ module.exports = {
             // send mail
             axios.post(config.MAILER_SERVICE_URL, mailObject).then(res => {
                 this.logger.info('mail.create: Sent mail 1.');
+                console.log(3);
             }).catch(err => {
                 this.logger.error('Failed sending mail', err.message);
             })
 
             axios.post(config.MAILER_SERVICE_URL, mailConfirmObject).then(res => {
                 this.logger.info('mail.create: Sent mail 2.');
+                console.log(4);
             }).catch(err => {
                 this.logger.error('Failed sending mail', err.message);
             })
@@ -142,12 +146,14 @@ module.exports = {
             // send mail
             axios.post(config.MAILER_SERVICE_URL, mailObject).then(res => {
                 this.logger.info('mail.createSuccess: Sent mail 1.');
+                console.log(5);
             }).catch(err => {
                 this.logger.error('Failed sending mail', err.message);
             })
 
             axios.post(config.MAILER_SERVICE_URL, mailConfirmObject).then(res => {
                 this.logger.info('mail.createSuccess: Sent mail 2.');
+                console.log(6);
             }).catch(err => {
                 this.logger.error('Failed sending mail', err.message);
             })
@@ -177,6 +183,7 @@ module.exports = {
             // send mail
             axios.post(config.MAILER_SERVICE_URL, mailObject).then(res => {
                 this.logger.info('mail.owner: Sent mail.');
+                console.log(7);
             }).catch(err => {
                 this.logger.error('Failed sending mail', err.message);
             })
