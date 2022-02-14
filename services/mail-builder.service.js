@@ -38,6 +38,7 @@ module.exports = {
      */
     events: {
         async "mail.join"(payload) {
+            console.log('mail.join');
             const [creatorUser, group] = await Promise.all([
                 this.broker.call('users.getByKartoffelId', { id: payload.creator }),
                 this.broker.call('ad.groupById', { groupId: payload.groupId }),
@@ -56,7 +57,7 @@ module.exports = {
 
             const mailObject = {
                 from: this.settings.mailUserFrom,
-                to: [creatorUser.mail],
+                to: ['danivngopro@gmail.com'],//creatorUser.mail],
                 title: "test",
                 html: this.joinHTML(creatorUser, group),
             };
@@ -85,6 +86,7 @@ module.exports = {
         },
 
         async "mail.create"(payload) {
+            console.log('mail.create');
             const group = payload.group;
             this.logger.info(JSON.stringify(payload));
             const creatorUser = await this.broker.call('users.getByKartoffelId', { id: payload.creator });
@@ -103,7 +105,7 @@ module.exports = {
         
             const mailObject = {
                 from: this.settings.mailUserFrom,
-                to: [creatorUser.mail],
+                to: ['danivngopro@gmail.com'],//creatorUser.mail],
                 title: "test",
                 html: this.createHTML(creatorUser, approverUser, group),
             };
@@ -132,13 +134,14 @@ module.exports = {
         },
 
         async "mail.createSuccess"(payload) {
+            console.log('mail.createSuccess');
             const group = payload;
             const creatorUser = await this.broker.call('users.getPersonByDomainUser', { domainuser: payload.owner });
             this.logger.info('owner' + JSON.stringify(creatorUser));
         
             const mailObject = {
                 from: this.settings.mailUserFrom,
-                to: [creatorUser.mail],
+                to: ['danivngopro@gmail.com'],//creatorUser.mail],
                 title: "test",
                 html: this.createSuccessHTML(creatorUser, group),
             };
@@ -160,6 +163,7 @@ module.exports = {
         },
 
         async "mail.owner"(payload) {
+            console.log('mail.owner');
             const group = await this.broker.call('ad.groupById', { groupId: payload.groupId });
             let approverUser;
             if(payload.approver.sAMAccountName){
